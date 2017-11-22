@@ -1,0 +1,11 @@
+set PUNKTY := a b c d e f;
+
+param:	POPYT	CENA	WAGA_NIEZADOWOLENIA	:=
+a		200		1.5		0.1
+b		100		2.5		0.1
+c		300		3		0.1
+d		400		2		0.1
+e		50		5		0.1
+f		1000	1		3.5;
+
+param PODAZ := 800;

@@ -1,0 +1,13 @@
+set PUNKTY := a b c d e f;
+param PIEKARNIA := a;
+param: DROGI: ODLEGLOSC :=
+a b 10, b a 10
+a c 300, c a 300
+a f 25, f a 25
+b c 20, c b 20
+c d 15, d c 15
+c e 60, e c 60
+c f 700, f c 700
+d e 30, e d 30
+d f 150, f d 150
+e f 5, f e 5;
