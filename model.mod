@@ -11,6 +11,7 @@ var UZYCIE_DROGI{kierowcy,punkty,punkty} binary;
 param N := card(punkty);
 param P := card(pieczywa);
 param K := card(kierowcy);
+param A := 7000 ;
 
 param miasta{punkty} symbolic;
 param imie{kierowcy} symbolic;
@@ -24,6 +25,7 @@ param KOSZT_KIEROWCY{kierowcy} ;  # kosz kierowcy za km
 param POJEMNOSC{kierowcy} ;
 param OBJETOSC{pieczywa} ;
 var ZABRANE{kierowcy,pieczywa} ;
+var z{d in kierowcy , i in punkty} >= 0 ;
 
 # Sprzedaż w danym punkcie
 
@@ -47,24 +49,17 @@ subject to
         c8 {d in kierowcy}: sum{p in pieczywa}ZABRANE[d,p]* OBJETOSC[p] <= POJEMNOSC[d]  ;
         c9 {d in kierowcy , p in pieczywa}: sum{i in punkty }SPRZEDAZ[i,d,p] <= ZABRANE[d,p] ;
         c6{p in pieczywa}: sum {k in kierowcy} ZABRANE[k,p] <= PODAZ[p];
-        
-                   
+        c10{d in kierowcy, i in punkty }: sum{p in pieczywa}SPRZEDAZ[i,d,p] <= z[d,i] ; #sum { k in punkty}UZYCIE_DROGI[d,k,i]*sum{p in pieczywa}SPRZEDAZ[i,d,p]
+        z1{d in kierowcy , i in punkty} : z[d,i] <= A* sum { k in punkty}UZYCIE_DROGI[d,k,i] ;
+        z2 {d in kierowcy , i in punkty}: z[d,i] <= sum{p in pieczywa}SPRZEDAZ[i,d,p] ;
+        z3 {d in kierowcy , i in punkty}: z[d,i] >=  sum{p in pieczywa}SPRZEDAZ[i,d,p] - (1-sum { k in punkty}UZYCIE_DROGI[d,k,i])*A ;    
           
-
-
- 
-
-
-
-
-
-
 data;
 
 
 
 param POPYT : 1   2   3 :=
-1             100 100 100
+1             000 000 000
 2             100 100 100
 3             100 100 100
 4             100 100 100  
