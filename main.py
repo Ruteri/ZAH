@@ -125,7 +125,7 @@ def run_sweep(data, debug=False):
     depot_coordinates = (data.coordinates[0,0], data.coordinates[0,1])
 
     points = np.append(data.coordinates[1:, :], simplified_demand[1:], axis=1)
-    (points, order) = sweep(points, data.capacity, depot_coordinates)
+    (points, order, cars_used) = sweep(points, data.capacity, depot_coordinates)
 
     if debug:
         # Print results
@@ -134,8 +134,10 @@ def run_sweep(data, debug=False):
         for (x, y, demand, angle, car) in points:
             print("{0: >8},{1: >8},{2: >10},{3: >20},{4: >4}".format(x, y, demand, angle, int(car)))
 
-    return (points, order)
+    return (points, order, cars_used)
 
+def get_data_subset(data, cities):
+    return data
 
 def main():
 
@@ -145,13 +147,23 @@ def main():
 
     data = load_data(sys.argv[1])
 
-    print('Running SWEEP algorithm...')
-    (points, order) = run_sweep(data, True)
-
-    # TODO: Run AMPL model for each car separately
+    # Run SWEEP algorithm
+    (points, order, cars_used) = run_sweep(data, True)
 
     data.capacity = data.capacity[0]
-    run_ampl_model(data)
+
+    # Run AMPL model for each car separately
+    for car_id in range(0, cars_used):
+
+        # Generate list od cities/points belonging to this cluster
+        cities = []
+        for index, (_,_,_,_,id) in enumerate(points):
+            if car_id == id:
+                cities.append(index)
+
+        # Get subset of the data and run AMPL model
+        data_subset = get_data_subset(data, cities)
+        run_ampl_model(data_subset)
 
 if __name__ == "__main__":
     main()

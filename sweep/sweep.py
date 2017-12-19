@@ -59,7 +59,7 @@ def sweep(points, car_capacities, depot_coordinates):
         # Assign to current cluster (car)
         points[idx][4] = current_car
 
-    return (points, new_order)
+    return (points, new_order, current_car+1)
 
 def main():
 
@@ -71,7 +71,7 @@ def main():
     cars = np.genfromtxt(sys.argv[2])
     depot_coordinates = (float(sys.argv[3]), float(sys.argv[4]))
 
-    (points, _) = sweep(points, cars, depot_coordinates)
+    (points, _, _) = sweep(points, cars, depot_coordinates)
 
     # Print results
     print("       X        Y     DEMAND                ANGLE  CAR")
