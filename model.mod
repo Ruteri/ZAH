@@ -1,31 +1,27 @@
 
 
 set punkty;
-set kierowcy ;
 set pieczywa ;
-var U{kierowcy,punkty} >= 0 integer;
+var U{punkty} >= 0 integer;
 param DROGI{punkty, punkty} >= 0;
-var SPRZEDAZ{punkty,kierowcy,pieczywa} >= 0 integer;
+var SPRZEDAZ{punkty,pieczywa} >= 0 integer;
 var NIEZADOWOLENIE { punkty, pieczywa} >= 0 integer;
-var UZYCIE_DROGI{kierowcy,punkty,punkty} binary;
+var UZYCIE_DROGI{punkty,punkty} binary;
 param N := card(punkty);
 param P := card(pieczywa);
-param K := card(kierowcy);
 param A := 7000 ;
 
 param miasta{punkty} symbolic;
-param imie{kierowcy} symbolic;
 param typy{pieczywa} symbolic;
-var UZYCIE_KIEROWCY{kierowcy} ;
 param POPYT {punkty,pieczywa} >= 0;
 param CENA {punkty,pieczywa} >= 0;
 param WAGA_NIEZADOWOLENIA {punkty,pieczywa } >= 0;
 param PODAZ{pieczywa};
-param KOSZT_KIEROWCY{kierowcy} ;  # kosz kierowcy za km 
-param POJEMNOSC{kierowcy} ;
+param KOSZT_KIEROWCY;  # kosz kierowcy za km 
+param POJEMNOSC;
 param OBJETOSC{pieczywa} ;
-var ZABRANE{kierowcy,pieczywa} ;
-var z{d in kierowcy , i in punkty} >= 0 ;
+var ZABRANE{pieczywa} ;
+var z{i in punkty} >= 0 ;
 
 # Sprzedaż w danym punkcie
 
@@ -33,26 +29,26 @@ var z{d in kierowcy , i in punkty} >= 0 ;
 
 
         
-maximize FUNKCJA_CELU: sum {p in pieczywa,i in punkty,d in kierowcy } SPRZEDAZ[i,d,p] * CENA[i,p] - sum {i in punkty ,p in pieczywa}  WAGA_NIEZADOWOLENIA[i,p] * NIEZADOWOLENIE[i,p] -sum{d in kierowcy ,i in punkty, j in punkty}KOSZT_KIEROWCY[d]* DROGI[i,j]*UZYCIE_DROGI[d,i,j];
+maximize FUNKCJA_CELU: sum {p in pieczywa,i in punkty} SPRZEDAZ[i,p] * CENA[i,p] - sum {i in punkty ,p in pieczywa}  WAGA_NIEZADOWOLENIA[i,p] * NIEZADOWOLENIE[i,p] -sum{i in punkty, j in punkty}KOSZT_KIEROWCY* DROGI[i,j]*UZYCIE_DROGI[i,j];
 subject to 
        
-        c1{k in punkty:k>1}: sum{i in punkty,d in kierowcy} UZYCIE_DROGI[d,i,k] = 1;       
-        c2{k in punkty:k>1}: sum{j in punkty,d in kierowcy} UZYCIE_DROGI[d,k,j] = 1;         
-        c11 {d in kierowcy,i in punkty: i<2}: sum { j in punkty} UZYCIE_DROGI[d,i,j]=1 ; # -(1-UZYCIE_KIEROWCY[d]) ;  z tym optymalizujemy ilośc kierowcow ale poki co to nie ma sensu  
-        c21 {d in kierowcy,i in punkty: i<2}: sum { j in punkty} UZYCIE_DROGI[d,j,i]=1 ; #-(1-UZYCIE_KIEROWCY[d]) ;  # dopki nie ma nagrody za szybkość
-        c111{d in kierowcy,j in punkty}: sum {i in punkty}  UZYCIE_DROGI[d,j,i]=sum {i in punkty}  UZYCIE_DROGI[d,i,j] ;
-        c3{d in kierowcy ,k in punkty, j in punkty: j > 1 and k > 1}:  
-           U[d,j] - U[d,k] + N*UZYCIE_DROGI[d,j,k] <= N-1;
+        c1{k in punkty:k>1}: sum{i in punkty} UZYCIE_DROGI[i,k] = 1;       
+        c2{k in punkty:k>1}: sum{j in punkty} UZYCIE_DROGI[k,j] = 1;         
+        c11 {i in punkty: i<2}: sum { j in punkty} UZYCIE_DROGI[i,j]=1 ;
+        c21 {i in punkty: i<2}: sum { j in punkty} UZYCIE_DROGI[j,i]=1 ;
+        c111{j in punkty}: sum {i in punkty}  UZYCIE_DROGI[j,i]=sum {i in punkty}  UZYCIE_DROGI[i,j] ;
+        c3{k in punkty, j in punkty: j > 1 and k > 1}:  
+           U[j] - U[k] + N*UZYCIE_DROGI[j,k] <= N-1;
        
-        c4 {i in punkty,p in pieczywa}: sum{k in kierowcy}SPRZEDAZ[i,k,p] <= POPYT[i,p];
-        c5 {i in punkty,p in pieczywa}: NIEZADOWOLENIE[i,p] = POPYT[i,p] - sum{k in kierowcy}SPRZEDAZ[i,k,p];  
-        c8 {d in kierowcy}: sum{p in pieczywa}ZABRANE[d,p]* OBJETOSC[p] <= POJEMNOSC[d]  ;
-        c9 {d in kierowcy , p in pieczywa}: sum{i in punkty }SPRZEDAZ[i,d,p] <= ZABRANE[d,p] ;
-        c6{p in pieczywa}: sum {k in kierowcy} ZABRANE[k,p] <= PODAZ[p];
-        c10{d in kierowcy, i in punkty }: sum{p in pieczywa}SPRZEDAZ[i,d,p] <= z[d,i] ; #sum { k in punkty}UZYCIE_DROGI[d,k,i]*sum{p in pieczywa}SPRZEDAZ[i,d,p]
-        z1{d in kierowcy , i in punkty} : z[d,i] <= A* sum { k in punkty}UZYCIE_DROGI[d,k,i] ;
-        z2 {d in kierowcy , i in punkty}: z[d,i] <= sum{p in pieczywa}SPRZEDAZ[i,d,p] ;
-        z3 {d in kierowcy , i in punkty}: z[d,i] >=  sum{p in pieczywa}SPRZEDAZ[i,d,p] - (1-sum { k in punkty}UZYCIE_DROGI[d,k,i])*A ;    
+        c4 {i in punkty,p in pieczywa}: SPRZEDAZ[i,p] <= POPYT[i,p];
+        c5 {i in punkty,p in pieczywa}: NIEZADOWOLENIE[i,p] = POPYT[i,p] - SPRZEDAZ[i,p];  
+        c8: sum{p in pieczywa}ZABRANE[p]* OBJETOSC[p] <= POJEMNOSC  ;
+        c9 {p in pieczywa}: sum{i in punkty }SPRZEDAZ[i,p] <= ZABRANE[p] ;
+        c6{p in pieczywa}: ZABRANE[p] <= PODAZ[p];
+        c10{i in punkty }: sum{p in pieczywa}SPRZEDAZ[i,p] <= z[i] ; #sum { k in punkty}UZYCIE_DROGI[d,k,i]*sum{p in pieczywa}SPRZEDAZ[i,d,p]
+        z1{i in punkty} : z[i] <= A* sum { k in punkty}UZYCIE_DROGI[k,i] ;
+        z2 {i in punkty}: z[i] <= sum{p in pieczywa}SPRZEDAZ[i,p] ;
+        z3 {i in punkty}: z[i] >=  sum{p in pieczywa}SPRZEDAZ[i,p] - (1-sum { k in punkty}UZYCIE_DROGI[k,i])*A ;    
           
 data;
 
@@ -78,13 +74,6 @@ param WAGA_NIEZADOWOLENIA:  1   2   3 :=
 3             0.2 0.2 0.2
 4             0.2 0.2 0.2  
 5             0.2 0.2 0.2 ;
-
-
-param: kierowcy: imie := 
- 1 "Janusz"
- 2 "Andrzej"
- 3 "Blacha"
-  ;
   
 param: pieczywa: typy := 
 1 "Jasne"  
@@ -102,17 +91,9 @@ param: pieczywa: typy :=
  2 2
  3 1 
  ;
-  param: POJEMNOSC:=
- 1 200
- 2 200
- 3 300 
- ;
+  param POJEMNOSC:= 200;
  
-param:  KOSZT_KIEROWCY := 
- 1 1
- 2 1
- 3 1
-  ;
+param  KOSZT_KIEROWCY := 1;
 
 param: punkty: miasta := 
         1 "Piekarnia"
