@@ -93,20 +93,44 @@ def run_ampl_model(data, debug=False):
 
     return ampl
 
-def print_ampl_model_results(ampl):
+def get_np_array_from_variable(ampl, name, two_dim=False, shape=(-1, 1)):
+    tmp = np.transpose(ampl.getVariable(name).getValues().toPandas().as_matrix())
+    if two_dim:
+        tmp = np.reshape(tmp, shape)
+    return tmp
+
+def print_ampl_model_results(ampl, cities):
+
+    num_of_cities = len(cities)
 
     print('Cargo (per type):')
-    print(np.transpose(ampl.getVariable('ZABRANE').getValues().toPandas().as_matrix()))
+    print(get_np_array_from_variable(ampl, 'ZABRANE'))
 
     print('Sales (per city):')
-    print(np.transpose(ampl.getVariable('SPRZEDAZ').getValues().toPandas().as_matrix()))
+    print(get_np_array_from_variable(ampl, 'SPRZEDAZ', True, (num_of_cities, -1)))
 
     print('Road usage:')
-    print(np.transpose(ampl.getVariable('UZYCIE_DROGI').getValues().toPandas().as_matrix()))
+    road_usage = get_np_array_from_variable(ampl, 'UZYCIE_DROGI', True, (num_of_cities, num_of_cities))
+    print(road_usage)
 
     print('Shortage (per city):')
-    print(np.transpose(ampl.getVariable('NIEZADOWOLENIE').getValues().toPandas().as_matrix()))
+    print(get_np_array_from_variable(ampl, 'NIEZADOWOLENIE', True, (num_of_cities, -1)))
 
+    # Find path
+    path = []
+    current_city = 0
+    while True:
+        if current_city == 0 and len(path) > 0:
+            break
+        path.append(current_city)
+        row = road_usage[current_city, :]
+        for idx, elem in enumerate(row):
+            if elem > 0:
+                current_city = idx
+                break
+    
+    print("Path:")
+    print(cities[path])
 
     # Calculate income
     sold = np.array(ampl.getVariable('SPRZEDAZ').getValues().toPandas().as_matrix())
@@ -223,7 +247,7 @@ def main():
         ampl = run_ampl_model(data_subset, False)
 
         # Display results
-        print_ampl_model_results(ampl)
+        print_ampl_model_results(ampl, cities)
 
 if __name__ == "__main__":
     main()
