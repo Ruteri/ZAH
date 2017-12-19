@@ -51,49 +51,12 @@ subject to
         z3 {i in punkty}: z[i] >=  sum{p in pieczywa}SPRZEDAZ[i,p] - (1-sum { k in punkty}UZYCIE_DROGI[k,i])*A ;    
           
 data;
-
-
-
-param POPYT : 1   2   3 :=
-1             000 000 000
-2             100 100 100
-3             100 100 100
-4             100 100 100  
-5             100 100 100 ;
-
-param CENA:  1   2   3 :=
-1             2 2 2
-2             2 2 2
-3             2 2 2
-4             2 2 2  
-5             2 2 2 ;
-
-param WAGA_NIEZADOWOLENIA:  1   2   3 :=
-1             0.2 0.2 0.2
-2             0.2 0.2 0.2
-3             0.2 0.2 0.2
-4             0.2 0.2 0.2  
-5             0.2 0.2 0.2 ;
   
 param: pieczywa: typy := 
 1 "Jasne"  
 2 "Ciemne"  
 3 "Prawilne"
   ;
-  
- param:  PODAZ := 
- 1 300 
- 2 150  
- 3 400
-  ;
- param: OBJETOSC:=
- 1 1
- 2 2
- 3 1 
- ;
-  param POJEMNOSC:= 200;
- 
-param  KOSZT_KIEROWCY := 1;
 
 param: punkty: miasta := 
         1 "Piekarnia"
@@ -101,13 +64,4 @@ param: punkty: miasta :=
         3 "B"
         4 "C"
         5 "D"
-;
-
-
-param DROGI: 1 2 3 4 5 :=
-        1 50000 732 217 564 58
-        2 217 50000 290 201 79
-        3 217 290 50000 113 303
-        4 164 201 113 50000 196
-        5 58 89 403 196 50000
 ;
