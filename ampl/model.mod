@@ -49,19 +49,3 @@ subject to
         z1{i in punkty} : z[i] <= A* sum { k in punkty}UZYCIE_DROGI[k,i] ;
         z2 {i in punkty}: z[i] <= sum{p in pieczywa}SPRZEDAZ[i,p] ;
         z3 {i in punkty}: z[i] >=  sum{p in pieczywa}SPRZEDAZ[i,p] - (1-sum { k in punkty}UZYCIE_DROGI[k,i])*A ;    
-          
-data;
-  
-param: pieczywa: typy := 
-1 "Jasne"  
-2 "Ciemne"  
-3 "Prawilne"
-  ;
-
-param: punkty: miasta := 
-        1 "Piekarnia"
-        2 "A"
-        3 "B"
-        4 "C"
-        5 "D"
-;

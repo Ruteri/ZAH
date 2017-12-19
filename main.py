@@ -7,22 +7,25 @@ from amplpy import AMPL
 
 class Struct(object): pass
 
-def print_scalar_param_to_file(file, param, name):
+def print_scalar_param(file, param, name):
     file.write('param {0} := {1};'.format(name, param))
 
-def print_1d_param_to_file(file, param, name):
+def print_1d_param(file, param, name):
 
     # Write header
     file.write('param {0} :=\n'.format(name))
 
     # Write data rows
     for idx, elem in enumerate(param):
-        file.write('{0} {1}'.format(idx + 1, elem))
+        if isinstance(elem, basestring):
+            file.write('{0} "{1}"'.format(idx + 1, elem))
+        else:
+            file.write('{0} {1}'.format(idx + 1, elem))
         if idx == (param.shape[0] - 1):
             file.write(';')
         file.write('\n')
 
-def print_2d_param_to_file(file, param, name):
+def print_2d_param(file, param, name):
 
     # Write header
     file.write('param {0} : '.format(name))
@@ -44,15 +47,16 @@ def generate_temp_data_file(data):
     tmp_file = tempfile.NamedTemporaryFile()
 
     # Fill with data
-
-    print_2d_param_to_file(tmp_file, data.demand, 'POPYT')
-    print_2d_param_to_file(tmp_file, data.prices, 'CENA')
-    print_2d_param_to_file(tmp_file, data.roads, 'DROGI')
-    print_2d_param_to_file(tmp_file, data.shortage_coeff, 'WAGA_NIEZADOWOLENIA')
-    print_1d_param_to_file(tmp_file, data.supply, 'PODAZ')
-    print_1d_param_to_file(tmp_file, data.volumes, 'OBJETOSC')
-    print_scalar_param_to_file(tmp_file, 1, 'KOSZT_KIEROWCY')
-    print_scalar_param_to_file(tmp_file, data.capacity, 'POJEMNOSC')
+    print_2d_param(tmp_file, data.demand, 'POPYT')
+    print_2d_param(tmp_file, data.prices, 'CENA')
+    print_2d_param(tmp_file, data.roads, 'DROGI')
+    print_2d_param(tmp_file, data.shortage_coeff, 'WAGA_NIEZADOWOLENIA')
+    print_1d_param(tmp_file, data.supply, 'PODAZ')
+    print_1d_param(tmp_file, data.volumes, 'OBJETOSC')
+    print_1d_param(tmp_file, data.cities, ': punkty: miasta')
+    print_1d_param(tmp_file, data.types, ': pieczywa: typy')
+    print_scalar_param(tmp_file, 1, 'KOSZT_KIEROWCY')
+    print_scalar_param(tmp_file, data.capacity, 'POJEMNOSC')
 
     # Dirty hack
     # File will be already open while amplpy uses it, but we have to make sure
@@ -79,7 +83,7 @@ def run_ampl_model(data):
 
 def load_data(data_dir):
 
-    # Load input data
+    # Load numerical data
     data = Struct()
     data.demand = np.genfromtxt('{0}/demand'.format(data_dir), delimiter=",")
     data.supply = np.genfromtxt('{0}/supply'.format(data_dir), delimiter=",")
@@ -89,6 +93,10 @@ def load_data(data_dir):
     data.capacity = np.genfromtxt('{0}/capacity'.format(data_dir), delimiter=",")
     data.volumes = np.genfromtxt('{0}/volumes'.format(data_dir), delimiter=",")
     data.points = np.genfromtxt('{0}/volumes'.format(data_dir), delimiter=",")
+
+    # Load textual data
+    data.cities = np.array([line.rstrip('\n') for line in open('{0}/cities'.format(data_dir))])
+    data.types = np.array([line.rstrip('\n') for line in open('{0}/types'.format(data_dir))])
 
     return data
 
