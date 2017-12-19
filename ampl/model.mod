@@ -1,16 +1,9 @@
-
-
 set punkty;
 set pieczywa ;
-var U{punkty} >= 0 integer;
 param DROGI{punkty, punkty} >= 0;
-var SPRZEDAZ{punkty,pieczywa} >= 0 integer;
-var NIEZADOWOLENIE { punkty, pieczywa} >= 0 integer;
-var UZYCIE_DROGI{punkty,punkty} binary;
 param N := card(punkty);
 param P := card(pieczywa);
 param A := 7000 ;
-
 param miasta{punkty} symbolic;
 param typy{pieczywa} symbolic;
 param POPYT {punkty,pieczywa} >= 0;
@@ -22,8 +15,11 @@ param POJEMNOSC;
 param OBJETOSC{pieczywa} ;
 var ZABRANE{pieczywa} ;
 var z{i in punkty} >= 0 ;
+var SPRZEDAZ{punkty,pieczywa} >= 0 integer;
+var NIEZADOWOLENIE { punkty, pieczywa} >= 0 integer;
+var UZYCIE_DROGI{punkty,punkty} binary;
+var U{punkty} >= 0 integer;
 
-# Sprzedaż w danym punkcie
 
 
 
