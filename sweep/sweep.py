@@ -72,8 +72,11 @@ def main():
 
     points = sweep(points, cars, depot_coordinates)
 
+    # Print results
+    print("       X        Y     DEMAND                ANGLE  CAR")
+    print("======================================================")
     for (x, y, demand, angle, car) in points:
-        print("{0: >8},{1: >8},{2: >10},{3: >20},{4: >2}".format(x, y, demand, angle, int(car)))
+        print("{0: >8},{1: >8},{2: >10},{3: >20},{4: >4}".format(x, y, demand, angle, int(car)))
 
 if __name__ == "__main__":
     main()
