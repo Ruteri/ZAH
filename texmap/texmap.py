@@ -12,6 +12,7 @@ def texmap(points, paths, depot_x, depot_y):
 	tex = ("\\documentclass[border=0pt]{standalone}\n"
 		"\\usepackage{tikz}\n"
 		"\\usetikzlibrary{arrows.meta}"
+		"\\usetikzlibrary{colorbrewer}"
 		"\\begin{document}\n"
 		"\\begin{tikzpicture}\n"
 		"\\tikzstyle{every node}=[font=\\tiny]"
@@ -28,20 +29,28 @@ def texmap(points, paths, depot_x, depot_y):
 		tex += ";"
 		i += 1
 
+	colors = ["A", "B", "C", "D", "E", "F", "G", "H", "I"]
+	color_idx = 0;
+
 	for path in paths:
 		tex += "\\draw[ultra thin, arrows=-{{Latex[length=0.75]}}, shorten >=0.75, shorten <=0.75, densely dotted] ({0}, {1})\n".format(depot_x/100, depot_y/100)
 		last_city = path[-1]
+
 		for city in path:
 			idx = city - 1
 			(x, y, _) = points[idx]
 			tex += " to[] ({0}, {1});\n".format(x/100, y/100)
 
-			optional_args = ""
 			if(city == last_city):
 				optional_args = ", densely dotted"
+			else:
+				optional_args = ", draw=Set1-{0}".format(colors[color_idx])
+				
 
 			tex += "\\draw[ultra thin, arrows=-{{Latex[length=0.75]}}, shorten >=0.75, shorten <=0.75 {0}] ({1}, {2})\n".format(optional_args, x/100, y/100)
 		tex += " to[] ({0}, {1});\n".format(depot_x/100, depot_y/100)
+
+		color_idx = (color_idx + 1) % len(colors)
 
 	tex += ("\\end{tikzpicture}\n"
 		"\\end{document}\n"
