@@ -44,11 +44,7 @@ def print_2d_param(file, param, name):
             file.write(';')
         file.write('\n')
 
-def generate_temp_data_file(data):
-
-    tmp_file = tempfile.NamedTemporaryFile()
-
-    # Fill with data
+def write_data_to_temp_file(tmp_file, data):
     print_2d_param(tmp_file, data.demand, 'POPYT')
     print_2d_param(tmp_file, data.prices, 'CENA')
     print_2d_param(tmp_file, data.roads, 'DROGI')
@@ -60,6 +56,18 @@ def generate_temp_data_file(data):
     print_scalar_param(tmp_file, 1, 'KOSZT_KIEROWCY')
     print_scalar_param(tmp_file, data.capacity, 'POJEMNOSC')
 
+
+def generate_temp_data_file(data, debug=False):
+
+    tmp_file = tempfile.NamedTemporaryFile()
+
+    # Fill with data
+    write_data_to_temp_file(tmp_file, data)
+    if debug:
+        print('\nDATA FILE:')
+        write_data_to_temp_file(sys.stdout, data)
+        print('\n')
+
     # Dirty hack
     # File will be already open while amplpy uses it, but we have to make sure
     # it is 'rewinded'
@@ -67,7 +75,7 @@ def generate_temp_data_file(data):
 
     return tmp_file
 
-def run_ampl_model(data):
+def run_ampl_model(data, debug=False):
 
     # Intiialize AMPL and choose solver
     ampl = AMPL()
@@ -77,7 +85,7 @@ def run_ampl_model(data):
     ampl.read('ampl/model.mod')
 
     # Generate and load temporary data file
-    data_file = generate_temp_data_file(data)
+    data_file = generate_temp_data_file(data, debug)
     ampl.readData(data_file.name)
     data_file.close()
 
@@ -175,13 +183,13 @@ def main():
         # Get original IDs (before sorting)
         cities = order[cities]
 
-        # Increase IDs by one and add bakery (it was removed earlier before running SWEEP)
-        # Then sort indices
+        # Increase IDs by one and add bakery (it was removed earlier before
+        #running SWEEP). Then sort indices
         cities = np.sort(np.append(0, np.add(cities, 1)))
 
         # Get subset of the data and run AMPL model
         data_subset = get_data_subset(data, car_id, cities)
-        run_ampl_model(data_subset)
+        run_ampl_model(data_subset, True)
 
 if __name__ == "__main__":
     main()
