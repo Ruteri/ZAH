@@ -95,10 +95,30 @@ def run_ampl_model(data, debug=False):
 
 def print_ampl_model_results(ampl):
 
-    print(ampl.getVariable('ZABRANE').getValues())
-    print(ampl.getVariable('SPRZEDAZ').getValues())
-    print(ampl.getVariable('UZYCIE_DROGI').getValues())
-    print(ampl.getVariable('NIEZADOWOLENIE').getValues())
+    print('Cargo (per type):')
+    print(np.transpose(ampl.getVariable('ZABRANE').getValues().toPandas().as_matrix()))
+
+    print('Sales (per city):')
+    print(np.transpose(ampl.getVariable('SPRZEDAZ').getValues().toPandas().as_matrix()))
+
+    print('Road usage:')
+    print(np.transpose(ampl.getVariable('UZYCIE_DROGI').getValues().toPandas().as_matrix()))
+
+    print('Shortage (per city):')
+    print(np.transpose(ampl.getVariable('NIEZADOWOLENIE').getValues().toPandas().as_matrix()))
+
+
+    # Calculate income
+    sold = np.array(ampl.getVariable('SPRZEDAZ').getValues().toPandas().as_matrix())
+    price = np.array(ampl.getParameter('CENA').getValues().toPandas().as_matrix())
+    incomde_per_city = np.multiply(sold, price)
+    income = np.sum(incomde_per_city)
+
+    print('Income (per city):')
+    print(np.transpose(incomde_per_city))
+
+    print('Income (total):')
+    print(income)
 
 def load_data(data_dir):
 
@@ -182,6 +202,8 @@ def main():
 
     # Run AMPL model for each car separately
     for car_id in range(0, cars_used):
+
+        print('\nCAR {0}:'.format(car_id))
 
         # Generate list od cities/points belonging to this cluster
         cities = []
