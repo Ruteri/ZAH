@@ -91,6 +91,15 @@ def run_ampl_model(data, debug=False):
 
     ampl.solve()
 
+    return ampl
+
+def print_ampl_model_results(ampl):
+
+    print(ampl.getVariable('ZABRANE').getValues())
+    print(ampl.getVariable('SPRZEDAZ').getValues())
+    print(ampl.getVariable('UZYCIE_DROGI').getValues())
+    print(ampl.getVariable('NIEZADOWOLENIE').getValues())
+
 def load_data(data_dir):
 
     # Load numerical data
@@ -189,7 +198,10 @@ def main():
 
         # Get subset of the data and run AMPL model
         data_subset = get_data_subset(data, car_id, cities)
-        run_ampl_model(data_subset, True)
+        ampl = run_ampl_model(data_subset, False)
+
+        # Display results
+        print_ampl_model_results(ampl)
 
 if __name__ == "__main__":
     main()
