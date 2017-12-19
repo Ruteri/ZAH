@@ -1,97 +1,90 @@
-set punkty;
-set pieczywa ;
-param DROGI{punkty, punkty} >= 0;
-param N := card(punkty);
-param P := card(pieczywa);
+set PUNKTY;
+set PIECZYWA ;
+param drogi{PUNKTY, PUNKTY} >= 0;
+param N := card(PUNKTY);
+param P := card(PIECZYWA);
 param A := 7000 ;
-param miasta{punkty} symbolic;
-param typy{pieczywa} symbolic;
-param POPYT {punkty,pieczywa} >= 0;
-param CENA {punkty,pieczywa} >= 0;
-param WAGA_NIEZADOWOLENIA {punkty,pieczywa } >= 0;
-param PODAZ{pieczywa};
-param KOSZT_KIEROWCY;  # kosz kierowcy za km 
-param POJEMNOSC;
-param OBJETOSC{pieczywa} ;
-var ZABRANE{pieczywa} ;
-var z{i in punkty} >= 0 ;
-var SPRZEDAZ{punkty,pieczywa} >= 0 integer;
-var NIEZADOWOLENIE { punkty, pieczywa} >= 0 integer;
-var UZYCIE_DROGI{punkty,punkty} binary;
-var U{punkty} >= 0 integer;
+param miasta{PUNKTY} symbolic;
+param typy{PIECZYWA} symbolic;
+param popyt {PUNKTY,PIECZYWA} >= 0;
+param cena {PUNKTY,PIECZYWA} >= 0;
+param podaz{PIECZYWA};
+param koszt_kierowcy;  # kosz kierowcy za km 
+param pojemnosc;
+param objetosc{PIECZYWA} ;
+var Zabrane{PIECZYWA} ;
+var z{i in PUNKTY} >= 0 ;
+var Sprzedaz{PUNKTY,PIECZYWA} >= 0 integer;
+var Uzycie_drogi{PUNKTY,PUNKTY} binary;
+var Krok_odwiedzenia{PUNKTY} >= 0 integer;
 
 
 
 
 
         
-maximize FUNKCJA_CELU: sum {p in pieczywa,i in punkty} SPRZEDAZ[i,p] * CENA[i,p] - sum {i in punkty ,p in pieczywa}  WAGA_NIEZADOWOLENIA[i,p] * NIEZADOWOLENIE[i,p] -sum{i in punkty, j in punkty}KOSZT_KIEROWCY* DROGI[i,j]*UZYCIE_DROGI[i,j];
+maximize FUNKCJA_CELU: sum {p in PIECZYWA,i in PUNKTY} Sprzedaz[i,p] * cena[i,p]  -sum{i in PUNKTY, j in PUNKTY}koszt_kierowcy* drogi[i,j]*Uzycie_drogi[i,j];
 subject to 
        
-        c1{k in punkty:k>1}: sum{i in punkty} UZYCIE_DROGI[i,k] = 1;       
-        c2{k in punkty:k>1}: sum{j in punkty} UZYCIE_DROGI[k,j] = 1;         
-        c11 {i in punkty: i<2}: sum { j in punkty} UZYCIE_DROGI[i,j]=1 ;
-        c21 {i in punkty: i<2}: sum { j in punkty} UZYCIE_DROGI[j,i]=1 ;
-        c111{j in punkty}: sum {i in punkty}  UZYCIE_DROGI[j,i]=sum {i in punkty}  UZYCIE_DROGI[i,j] ;
-        c3{k in punkty, j in punkty: j > 1 and k > 1}:  
-           U[j] - U[k] + N*UZYCIE_DROGI[j,k] <= N-1;
+        c1{k in PUNKTY:k>1}: sum{i in PUNKTY} Uzycie_drogi[i,k] = 1;       
+        c2{k in PUNKTY:k>1}: sum{j in PUNKTY} Uzycie_drogi[k,j] = 1;         
+        c11 {i in PUNKTY: i<2}: sum { j in PUNKTY} Uzycie_drogi[i,j]=1 ;
+        c21 {i in PUNKTY: i<2}: sum { j in PUNKTY} Uzycie_drogi[j,i]=1 ;
+        c111{j in PUNKTY}: sum {i in PUNKTY}  Uzycie_drogi[j,i]=sum {i in PUNKTY}  Uzycie_drogi[i,j] ;
+        c3{k in PUNKTY, j in PUNKTY: j > 1 and k > 1}:  
+           Krok_odwiedzenia[j] - Krok_odwiedzenia[k] + N*Uzycie_drogi[j,k] <= N-1;
        
-        c4 {i in punkty,p in pieczywa}: SPRZEDAZ[i,p] <= POPYT[i,p];
-        c5 {i in punkty,p in pieczywa}: NIEZADOWOLENIE[i,p] = POPYT[i,p] - SPRZEDAZ[i,p];  
-        c8: sum{p in pieczywa}ZABRANE[p]* OBJETOSC[p] <= POJEMNOSC  ;
-        c9 {p in pieczywa}: sum{i in punkty }SPRZEDAZ[i,p] <= ZABRANE[p] ;
-        c6{p in pieczywa}: ZABRANE[p] <= PODAZ[p];
-        c10{i in punkty }: sum{p in pieczywa}SPRZEDAZ[i,p] <= z[i] ; #sum { k in punkty}UZYCIE_DROGI[d,k,i]*sum{p in pieczywa}SPRZEDAZ[i,d,p]
-        z1{i in punkty} : z[i] <= A* sum { k in punkty}UZYCIE_DROGI[k,i] ;
-        z2 {i in punkty}: z[i] <= sum{p in pieczywa}SPRZEDAZ[i,p] ;
-        z3 {i in punkty}: z[i] >=  sum{p in pieczywa}SPRZEDAZ[i,p] - (1-sum { k in punkty}UZYCIE_DROGI[k,i])*A ;    
+        c4 {i in PUNKTY,p in PIECZYWA}: Sprzedaz[i,p] <= popyt[i,p];
+        
+        c8: sum{p in PIECZYWA}Zabrane[p]* objetosc[p] <= pojemnosc  ;
+        c9 {p in PIECZYWA}: sum{i in PUNKTY }Sprzedaz[i,p] <= Zabrane[p] ;
+        c6{p in PIECZYWA}: Zabrane[p] <= podaz[p];
+        c10{i in PUNKTY }: sum{p in PIECZYWA}Sprzedaz[i,p] <= z[i] ; #sum { k in PUNKTY}Uzycie_drogi[d,k,i]*sum{p in PIECZYWA}Sprzedaz[i,d,p]
+        z1{i in PUNKTY} : z[i] <= A* sum { k in PUNKTY}Uzycie_drogi[k,i] ;
+        z2 {i in PUNKTY}: z[i] <= sum{p in PIECZYWA}Sprzedaz[i,p] ;
+        z3 {i in PUNKTY}: z[i] >=  sum{p in PIECZYWA}Sprzedaz[i,p] - (1-sum { k in PUNKTY}Uzycie_drogi[k,i])*A ;    
           
 data;
 
 
 
-param POPYT : 1   2   3 :=
+param popyt : 1   2   3 :=
 1             000 000 000
 2             100 100 100
 3             100 100 100
 4             100 100 100  
 5             100 100 100 ;
 
-param CENA:  1   2   3 :=
+param cena:  1   2   3 :=
 1             2 2 2
 2             2 2 2
 3             2 2 2
 4             2 2 2  
 5             2 2 2 ;
 
-param WAGA_NIEZADOWOLENIA:  1   2   3 :=
-1             0.2 0.2 0.2
-2             0.2 0.2 0.2
-3             0.2 0.2 0.2
-4             0.2 0.2 0.2  
-5             0.2 0.2 0.2 ;
+
   
-param: pieczywa: typy := 
+param: PIECZYWA: typy := 
 1 "Jasne"  
 2 "Ciemne"  
 3 "Prawilne"
   ;
   
- param:  PODAZ := 
+ param:  podaz := 
  1 300 
  2 150  
  3 400
   ;
- param: OBJETOSC:=
+ param: objetosc:=
  1 1
  2 2
  3 1 
  ;
-  param POJEMNOSC:= 200;
+  param pojemnosc:= 200;
  
-param  KOSZT_KIEROWCY := 1;
+param  koszt_kierowcy := 1;
 
-param: punkty: miasta := 
+param: PUNKTY: miasta := 
         1 "Piekarnia"
         2 "A"
         3 "B"
@@ -100,7 +93,7 @@ param: punkty: miasta :=
 ;
 
 
-param DROGI: 1 2 3 4 5 :=
+param drogi: 1 2 3 4 5 :=
         1 50000 732 217 564 58
         2 217 50000 290 201 79
         3 217 290 50000 113 303
