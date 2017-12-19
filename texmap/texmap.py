@@ -29,13 +29,19 @@ def texmap(points, paths, depot_x, depot_y):
 		i += 1
 
 	for path in paths:
-		tex += "\\draw[ultra thin, arrows=-{{Latex[length=0.75]}}, shorten >=0.75, shorten <=0.75] ({0}, {1})\n".format(depot_x/100, depot_y/100)
+		tex += "\\draw[ultra thin, arrows=-{{Latex[length=0.75]}}, shorten >=0.75, shorten <=0.75, densely dotted] ({0}, {1})\n".format(depot_x/100, depot_y/100)
+		last_city = path[-1]
 		for city in path:
 			idx = city - 1
 			(x, y, _) = points[idx]
-			tex += " to[bend right] ({0}, {1});\n".format(x/100, y/100)
-			tex += "\\draw[ultra thin, arrows=-{{Latex[length=0.75]}}, shorten >=0.75, shorten <=0.75] ({0}, {1})\n".format(x/100, y/100)
-		tex += " to[bend right] ({0}, {1});\n".format(depot_x/100, depot_y/100)
+			tex += " to[] ({0}, {1});\n".format(x/100, y/100)
+
+			optional_args = ""
+			if(city == last_city):
+				optional_args = ", densely dotted"
+
+			tex += "\\draw[ultra thin, arrows=-{{Latex[length=0.75]}}, shorten >=0.75, shorten <=0.75 {0}] ({1}, {2})\n".format(optional_args, x/100, y/100)
+		tex += " to[] ({0}, {1});\n".format(depot_x/100, depot_y/100)
 
 	tex += ("\\end{tikzpicture}\n"
 		"\\end{document}\n"
