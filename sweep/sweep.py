@@ -15,8 +15,8 @@ def sweep(points, car_capacities, depot_coordinates):
     for (point_x, point_y, demand) in points:
 
         # Calculate coordinates relatively to the depot
-        rel_x = depot_x - point_x
-        rel_y = depot_y - point_y
+        rel_x = point_x - depot_x
+        rel_y = point_y - depot_y
 
         # Calculate angle
         angle = atan2(rel_y, rel_x)
