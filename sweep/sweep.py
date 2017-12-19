@@ -29,7 +29,8 @@ def sweep(points, car_capacities, depot_coordinates):
     points = np.append(points, np.zeros((points.shape[0], 1)), axis=1)
 
     # Sort points by angle (fourth column, hence [:,3])
-    points[points[:,3].argsort()]
+    new_order = points[:,3].argsort()
+    points = points[new_order]
 
     # Assign to clusters
     current_car = 0
@@ -58,7 +59,7 @@ def sweep(points, car_capacities, depot_coordinates):
         # Assign to current cluster (car)
         points[idx][4] = current_car
 
-    return points
+    return (points, new_order)
 
 def main():
 
@@ -70,7 +71,7 @@ def main():
     cars = np.genfromtxt(sys.argv[2])
     depot_coordinates = (float(sys.argv[3]), float(sys.argv[4]))
 
-    points = sweep(points, cars, depot_coordinates)
+    (points, _) = sweep(points, cars, depot_coordinates)
 
     # Print results
     print("       X        Y     DEMAND                ANGLE  CAR")
