@@ -18,14 +18,14 @@ def texmap(points, paths, depot_x, depot_y):
 		"\\tikzstyle{every node}=[font=\\tiny]"
 	)
 
-	tex += "\\draw[green] ({0}, {1}) circle (0.025)\n".format(depot_x/100, depot_y/100)
+	tex += "\\draw[green] ({0}, {1}) circle (0.04)\n".format(depot_x/100, depot_y/100)
 	tex += " node[scale=0.15] {{D}};\n"
 
 	i = 1
 	for (x, y, demand) in points:
-		tex += "\\draw[blue, ultra thin] ({0}, {1}) circle (0.025)\n".format(x/100, y/100)
-		tex += " node[scale=0.15] {{{0}}}\n".format(i)
-		# tex += " node[above=3, right=3, red] {{{0}}};\n".format(int(demand))
+		tex += "\\draw[blue, ultra thin] ({0}, {1}) circle (0.04)\n".format(x/100, y/100)
+		tex += " node[scale=0.2, above=-2.5] {{{0}}}\n".format(i)
+		tex += " node[scale=0.15, below=-1.5, red] {{{0}}};\n".format(int(demand))
 		tex += ";"
 		i += 1
 
@@ -33,7 +33,7 @@ def texmap(points, paths, depot_x, depot_y):
 	color_idx = 0;
 
 	for path in paths:
-		tex += "\\draw[ultra thin, arrows=-{{Latex[length=0.75]}}, shorten >=0.75, shorten <=0.75, densely dotted] ({0}, {1})\n".format(depot_x/100, depot_y/100)
+		tex += "\\draw[ultra thin, arrows=-{{Latex[length=0.75]}}, shorten >=1, shorten <=1, densely dotted] ({0}, {1})\n".format(depot_x/100, depot_y/100)
 		last_city = path[-1]
 
 		for city in path:
@@ -47,7 +47,7 @@ def texmap(points, paths, depot_x, depot_y):
 				optional_args = ", draw=Set1-{0}".format(colors[color_idx])
 				
 
-			tex += "\\draw[ultra thin, arrows=-{{Latex[length=0.75]}}, shorten >=0.75, shorten <=0.75 {0}] ({1}, {2})\n".format(optional_args, x/100, y/100)
+			tex += "\\draw[ultra thin, arrows=-{{Latex[length=0.75]}}, shorten >=1, shorten <=1 {0}] ({1}, {2})\n".format(optional_args, x/100, y/100)
 		tex += " to[] ({0}, {1});\n".format(depot_x/100, depot_y/100)
 
 		color_idx = (color_idx + 1) % len(colors)
