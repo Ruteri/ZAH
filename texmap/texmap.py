@@ -9,30 +9,33 @@ import numpy as np
 
 # Collects data from sweep algorithm and draws the map of points in TikZ
 def texmap(points, paths, depot_x, depot_y):
-	tex = ("\\documentclass[class=minimal,border=0pt]{standalone}\n"
+	tex = ("\\documentclass[border=0pt]{standalone}\n"
 		"\\usepackage{tikz}\n"
+		"\\usetikzlibrary{arrows.meta}"
 		"\\begin{document}\n"
 		"\\begin{tikzpicture}\n"
+		"\\tikzstyle{every node}=[font=\\tiny]"
 	)
 
-	tex += "\\draw[green] ({0}, {1}) circle (0.25)\n".format(depot_x, depot_y)
-	tex += " node {{D}};\n"
+	tex += "\\draw[green] ({0}, {1}) circle (0.025)\n".format(depot_x/100, depot_y/100)
+	tex += " node[scale=0.15] {{D}};\n"
 
 	i = 1
 	for (x, y, demand) in points:
-		tex += "\\draw[blue] ({0}, {1}) circle (0.25)\n".format(x, y)
-		tex += " node {{{0}}}\n".format(i)
-		tex += " node[above=10, right=5, red] {{{0}}};\n".format(demand)
+		tex += "\\draw[blue, ultra thin] ({0}, {1}) circle (0.025)\n".format(x/100, y/100)
+		tex += " node[scale=0.15] {{{0}}}\n".format(i)
+		# tex += " node[above=3, right=3, red] {{{0}}};\n".format(int(demand))
+		tex += ";"
 		i += 1
 
 	for path in paths:
-		tex += "\\draw[thick, ->] ({0}, {1})\n".format(depot_x, depot_y)
+		tex += "\\draw[ultra thin, arrows=-{{Latex[length=0.75]}}, shorten >=0.75, shorten <=0.75] ({0}, {1})\n".format(depot_x/100, depot_y/100)
 		for city in path:
 			idx = city - 1
 			(x, y, _) = points[idx]
-			tex += " to[bend right] ({0}, {1});\n".format(x, y)
-			tex += "\\draw[thick, ->] ({0}, {1})\n".format(x, y)
-		tex += " to[bend right] ({0}, {1});\n".format(depot_x, depot_y)
+			tex += " to[bend right] ({0}, {1});\n".format(x/100, y/100)
+			tex += "\\draw[ultra thin, arrows=-{{Latex[length=0.75]}}, shorten >=0.75, shorten <=0.75] ({0}, {1})\n".format(x/100, y/100)
+		tex += " to[bend right] ({0}, {1});\n".format(depot_x/100, depot_y/100)
 
 	tex += ("\\end{tikzpicture}\n"
 		"\\end{document}\n"
