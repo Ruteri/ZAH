@@ -47,8 +47,8 @@ def sweep(points, car_capacities, depot_coordinates):
                 current_car += 1
 
             if current_car >= car_capacities.shape[0]:
-                print("Warning: All remaining cars are too small to fulfill the demand")
-                break
+                print("Error: All remaining cars are too small to fulfill the demand")
+                return (None, None)
 
             current_cargo = 0
             current_capacity = car_capacities[current_car]

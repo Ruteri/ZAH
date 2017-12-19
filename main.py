@@ -4,6 +4,7 @@ import sys
 import tempfile
 import numpy as np
 from amplpy import AMPL
+from sweep.sweep import sweep
 
 class Struct(object): pass
 
@@ -93,12 +94,48 @@ def load_data(data_dir):
     data.capacity = np.genfromtxt('{0}/capacity'.format(data_dir), delimiter=",")
     data.volumes = np.genfromtxt('{0}/volumes'.format(data_dir), delimiter=",")
     data.points = np.genfromtxt('{0}/volumes'.format(data_dir), delimiter=",")
+    data.coordinates = np.genfromtxt('{0}/coordinates'.format(data_dir), delimiter=",")
 
     # Load textual data
     data.cities = np.array([line.rstrip('\n') for line in open('{0}/cities'.format(data_dir))])
     data.types = np.array([line.rstrip('\n') for line in open('{0}/types'.format(data_dir))])
 
     return data
+
+# Calculates simplified demand as total volume of products needed to fulfill
+# the demand
+def get_simplified_demand(demand, volumes):
+
+    simplified_demand = np.zeros((demand.shape[0], 1))
+
+    for idx0, row in enumerate(demand):
+        overall_volume = 0
+        for idx1, elem in enumerate(row):
+            overall_volume += elem * volumes[idx1]
+        simplified_demand[idx0] = overall_volume
+
+    return simplified_demand
+
+def run_sweep(data, debug=False):
+
+    # Calculate simplified demand
+    simplified_demand = get_simplified_demand(data.demand, data.volumes)
+
+    # Get bakery coefficients
+    depot_coordinates = (data.coordinates[0,0], data.coordinates[0,1])
+
+    points = np.append(data.coordinates[1:, :], simplified_demand[1:], axis=1)
+    (points, order) = sweep(points, data.capacity, depot_coordinates)
+
+    if debug:
+        # Print results
+        print("       X        Y     DEMAND                ANGLE  CAR")
+        print("======================================================")
+        for (x, y, demand, angle, car) in points:
+            print("{0: >8},{1: >8},{2: >10},{3: >20},{4: >4}".format(x, y, demand, angle, int(car)))
+
+    return (points, order)
+
 
 def main():
 
@@ -108,6 +145,12 @@ def main():
 
     data = load_data(sys.argv[1])
 
+    print('Running SWEEP algorithm...')
+    (points, order) = run_sweep(data, True)
+
+    # TODO: Run AMPL model for each car separately
+
+    data.capacity = data.capacity[0]
     run_ampl_model(data)
 
 if __name__ == "__main__":
