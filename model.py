@@ -9,7 +9,7 @@ def main():
     ampl.eval('option solver cplex;')
     
     # Load model
-    ampl.read('model.mod')
+    ampl.read('ampl/model.mod')
     
     ampl.solve()
 
