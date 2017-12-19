@@ -3,6 +3,7 @@
 import sys
 import tempfile
 import numpy as np
+from copy import deepcopy
 from amplpy import AMPL
 from sweep.sweep import sweep
 
@@ -93,7 +94,6 @@ def load_data(data_dir):
     data.shortage_coeff = np.genfromtxt('{0}/shortage_coeff'.format(data_dir), delimiter=",")
     data.capacity = np.genfromtxt('{0}/capacity'.format(data_dir), delimiter=",")
     data.volumes = np.genfromtxt('{0}/volumes'.format(data_dir), delimiter=",")
-    data.points = np.genfromtxt('{0}/volumes'.format(data_dir), delimiter=",")
     data.coordinates = np.genfromtxt('{0}/coordinates'.format(data_dir), delimiter=",")
 
     # Load textual data
@@ -136,8 +136,21 @@ def run_sweep(data, debug=False):
 
     return (points, order, cars_used)
 
-def get_data_subset(data, cities):
-    return data
+def get_data_subset(data, car_id, city_ids):
+
+    data_subset = deepcopy(data)
+
+    tmp = data_subset.roads[city_ids,:]
+    data_subset.roads = tmp[:,city_ids]
+
+    data_subset.cities = data_subset.cities[city_ids]
+    data_subset.demand = data_subset.demand[city_ids]
+    data_subset.prices = data_subset.prices[city_ids]
+    data_subset.shortage_coeff = data_subset.shortage_coeff[city_ids]
+    data_subset.capacity = data_subset.capacity[car_id]
+    data_subset.coordinates = data_subset.coordinates[city_ids]
+
+    return data_subset
 
 def main():
 
@@ -150,8 +163,6 @@ def main():
     # Run SWEEP algorithm
     (points, order, cars_used) = run_sweep(data, True)
 
-    data.capacity = data.capacity[0]
-
     # Run AMPL model for each car separately
     for car_id in range(0, cars_used):
 
@@ -161,8 +172,15 @@ def main():
             if car_id == id:
                 cities.append(index)
 
+        # Get original IDs (before sorting)
+        cities = order[cities]
+
+        # Increase IDs by one and add bakery (it was removed earlier before running SWEEP)
+        # Then sort indices
+        cities = np.sort(np.append(0, np.add(cities, 1)))
+
         # Get subset of the data and run AMPL model
-        data_subset = get_data_subset(data, cities)
+        data_subset = get_data_subset(data, car_id, cities)
         run_ampl_model(data_subset)
 
 if __name__ == "__main__":
