@@ -1,0 +1,112 @@
+\documentclass[]{article}
+\usepackage{polski}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{makecell}
+\usepackage[table]{xcolor}
+\usepackage{graphicx}
+\usepackage{relsize}
+
+%opening
+\title{System wspomagający dystrybucję pieczywa}
+\author{A. Kowalewski, M. Morusiewicz, K. Kęsik, M. Kasprzyk}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Niżej omawiany system może być użyteczny dla piekarni, które oprócz sklepu stacjonarnego, decydują się na dystrybucję pieczywa bezpośrednio do klienta. Dla zadanych parametrów modeli pozwala on w łatwy sposób obliczyć przychody uzyskiwane ze sprzedanego pieczywa jak i straty z powstałe przez niezaspokojenie klienta, optymalizując przy tym trasę wykonywaną przez dostawców. 
+\end{abstract}
+
+\section{Opis matematyczny rozwiązania}
+
+Zaproponowane przez nas rozwiązanie zakłada podzielenie problemu na dwa podzadania:
+\begin{enumerate}
+	\item Wyznaczenie prawie optymalnego przydziału kierowców do miast
+	\item Optymalizacja trasy dla każdego z kierowców z osobna
+\end{enumerate}
+W dalszej części zostaną omówione obie części rozwiązania.
+
+\subsection{Wyznaczanie przydziału kierowców - \\Algorytm \textit{SWEEP}}
+
+W związku ze zbyt dużą złożonością obliczeniową modelu z wieloma samochodami, został zaimplementowany algorytm, który wybiera zbiory punktów, po których poruszają się poszczególne samochody. Algorytm ten wykorzystuje heurystykę Sweep.
+
+Kolejność działania algorytmu:
+\begin{enumerate}
+	\item Oblicz położenie wszystkich punktów w biegunowym układzie współżędnych względem puntu startowego,
+	\item Przydzielaj punkty do samochodu w kolejności rosnących kątów dopóki jego całkowita ładowność nie zostanie przekroczona,
+	\item Kontynuuj dodawanie do następnego samochodu aż do przydzielenia wszystkich punktów.
+\end{enumerate}
+
+\subsection{Optymalizacja trasy kierowcy - Właściwy model}
+
+\subsubsection{Parametry modelu}
+
+Parametrami sterującymi naszym modelem są następujące zestawy danych:
+
+\begin{itemize}
+	\item Zbiór $PUNKTY$ o łącznej ilości $N$ określa miasta na mapie, które należy odwiedzić, przy czym pierwsze z nich to piekarnia, z której startują dostawcy
+	\item Zbiór $DROGI$ decyduje o odległościach między punktami na mapie. Odległość $A \rightarrow B$ wynosi tyle samo, co odległość $B \rightarrow A$, przy czym odległość $A \rightarrow A$ przyjmowana jest za nieskończenie wielką
+	\item Zbiór $PIECZYWA$ o łącznej ilości $P$ mówi o tym, jakie rodzaje pieczywa będą dystrybuowane,
+	\item Zbiór $CENA$ wyznacza ceny każdego rodzaju pieczywa w każdym z miast
+	\item Zbiór $OBJETOSC$ decyduje o objętości zajmowanej przez jedną sztukę każdego rodzaju pieczywa
+	\item Zbiór $POPYT$ informuje o zapotrzebowaniu na każdy rodzaj pieczywa w każdym z miast
+	\item Zbiór $PODAZ$ deklaruje maksymalne dostępne ilości każdego rodzaju pieczywa
+	\item Parametr $KOSZT\_KIEROWCY$ określa opłatę dla kierowcy za przejechaną jednostkę drogi
+	\item Parametr $POJEMNOSC$ mówi o tym, ile jednostek objętości jest w stanie przewieźć kierowca
+\end{itemize}
+
+\subsubsection{Zmienne pomocnicze modelu}
+
+Oprócz parametrów, model używa następujących zmiennych w obliczeniach pomocniczych:
+
+\begin{enumerate}
+	\item Zbiór $Zabrane$ mówi o tym, ile sztuk każdego rodzaju pieczywa zabrał kierowca
+	\item Zbiór $Sprzedaz$ odpowiada na pytanie, ile sztuk każdego rodzaju pieczywa sprzedał w każdym z miast
+	\item Zbiór $Uzycie\_drogi$ informuje, jak przebiega trasa kierowcy 
+	\item Zbiór $Krok\_odwiedzenia$ pokazuje, w których iteracjach będą odwiedzane poszczególne miasta
+\end{enumerate}
+
+\subsubsection{Funkcja celu dla modelu}
+
+Celem modelu jest maksymalizacja zysków związanych z wielkością sprzedanego pieczywa oraz minimalizacja strat wynikających z pokonywanej przez kierowcy drogi, co formalnie można zapisać następująco:
+
+\[ \max \left( \sum_{p \in PIECZYWA,~i \in PUNKTY} Sprzedaz(i,p) \cdot cena(i,p) \right) \]
+
+\[ \min \left( \sum_{i \in PUNKTY,~j \in PUNKTY} koszt\_kierowcy \cdot drogi(i,j) \cdot Uzycie\_drogi(i,j) \right) \]
+
+\subsubsection{Ograniczenia funkcji celu}
+
+Na model zostały nałożone następujące ograniczenia:
+
+\begin{itemize}
+	\item Ograniczenia odnośnie wykorzystanie każdej drogi tylko raz:\\
+		\[ \mathlarger{\forall}_{k \in PUNKTY,~k > 1}: \sum_{i \in PUNKTY} Uzycie\_drogi(i,k) = 1 \]
+		\[ \mathlarger{\forall}_{k \in PUNKTY,~k > 1}: \sum_{i \in PUNKTY} Uzycie\_drogi(k,i) = 1 \]
+
+	\item Ograniczenia odnośnie nie pozostawaniu w punkcie, w którym się przebywa:\\
+		\[ \mathlarger{\forall}_{i \in PUNKTY,~i > 2}: \sum_{j \in PUNKTY} Uzycie\_drogi(i,j) = 1 \]
+		\[ \mathlarger{\forall}_{i \in PUNKTY,~i > 2}: \sum_{j \in PUNKTY} Uzycie\_drogi(j,i) = 1 \]
+
+	\item Ograniczenie dotyczące kompletności wypełnienia tablicy $Uzycie\_drogi$:\\
+		\[ \mathlarger{\forall}_{j \in PUNKTY}: \sum_{i \in PUNKTY} Uzycie\_drogi(j,i) = \sum_{i \in PUNKTY} Uzycie\_drogi(i,j) \]
+
+	\item Ograniczenie zapewniające obecność tylko jednego cyklu w podróży:\\
+		\[ Krok\_odwiedzenia(j) - Krok\_odwiedzenia(k) + N \cdot Uzycie\_drogi(j,k) \leq N-1 \], dla ${k \in PUNKTY, j \in PUNKTY,~j > 1,~k > 1}$
+
+	\item Ograniczenie nie przekraczania sprzedaży ponad popyt:\\
+		\[ \mathlarger{\forall}_{i \in PUNKTY, p \in PIECZYWA}: Sprzedaz(i,p) \leq POPYT(i,p) \]
+
+	\item Ograniczenie nie przekraczania maksymalnej ładowności pojazdu:\\
+		\[ \mathlarger{\forall}_{p \in PIECZYWA}: Zabrane(p) \cdot OBJETOSC(p) \leq POJEMNOSC \]
+
+	\item Ograniczenie sprzedania tylko takiej ilości pieczywa, jaką się zabrało:\\
+		\[ \mathlarger{\forall}_{p \in PIECZYWA}: \sum_{i \in PUNKTY} Sprzedaz(i,p) \leq Zabrane(p) \]
+
+	\item Ograniczenie pobrania maksymalnie takiej ilości pieczywa, jaka jest dostępna:\\
+		\[ \mathlarger{\forall}_{p \in PIECZYWA}: Zabrane(p) \leq PODAZ(p) \]
+
+\end{itemize}
+
+\end{document}
