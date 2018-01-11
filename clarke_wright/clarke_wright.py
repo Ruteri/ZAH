@@ -93,7 +93,7 @@ def main():
 
     demand = get_simplified_demand(demand, volumes)
 
-    (cycles, city_cycle, cargo) = clarke_wright(distances, demand, 40)
+    (cycles, city_cycle, cargo) = clarke_wright(distances, demand, 2000)
 
     print('\nCycles as vectors (possibly empty):')
     print(cycles)
