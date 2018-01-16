@@ -4,8 +4,11 @@ import numpy as np
 from copy import deepcopy
 from amplpy import AMPL
 from sweep.sweep import sweep
+from collections import namedtuple
 
 class Model(object):
+	CarUsage = namedtuple("CarUsage", "carId cargo sales road path income totalIncome")
+
 	def __init__(self, dataDirectory, verbose=False):
 		self.data = self.load_data(dataDirectory)
 		self.verbose = verbose
@@ -14,6 +17,7 @@ class Model(object):
 		(points, order, cars_used) = self.run_sweep(self.data)
 
 		# Run AMPL model for each car separately
+		carsUsage = []
 		for car_id in range(0, cars_used):
 			if self.verbose:
 				print('\nCAR {0}:'.format(car_id))
@@ -35,9 +39,13 @@ class Model(object):
 			data_subset = self.get_data_subset(self.data, car_id, cities)
 			ampl = self.run_ampl_model(data_subset)
 
-			# Display results
+			carUsage = self.collectCarUsage(car_id, ampl, cities)
+			carsUsage.append(carUsage)
+
 			if self.verbose:
-				self.print_ampl_model_results(ampl, cities)
+				print(carUsage)
+
+		return carsUsage
 
 	class Struct(object): pass
 
@@ -89,7 +97,6 @@ class Model(object):
 		self.print_scalar_param(tmp_file, data.capacity, 'POJEMNOSC')
 
 	def generate_temp_data_file(self, data):
-
 		tmp_file = tempfile.NamedTemporaryFile()
 
 		# Fill with data
@@ -107,12 +114,9 @@ class Model(object):
 		return tmp_file
 
 	def run_ampl_model(self, data):
-
-		# Intiialize AMPL and choose solver
+		# Intiialize AMPL choose solver and load model
 		ampl = AMPL()
 		ampl.eval('option solver cplex;')
-
-		# Load model
 		ampl.read('model/ampl/model.mod')
 
 		# Generate and load temporary data file
@@ -121,59 +125,54 @@ class Model(object):
 		data_file.close()
 
 		ampl.solve()
-
 		return ampl
 
-	def get_np_array_from_variable(self, ampl, name, two_dim=False, shape=(-1, 1)):
-		tmp = np.transpose(ampl.getVariable(name).getValues().toPandas().as_matrix())
-		if two_dim:
-			tmp = np.reshape(tmp, shape)
-		return tmp
-
-	def print_ampl_model_results(self, ampl, cities):
-
-		num_of_cities = len(cities)
-
-		print('Cargo (per type):')
-		print(self.get_np_array_from_variable(ampl, 'ZABRANE'))
-
-		print('Sales (per city):')
-		print(self.get_np_array_from_variable(ampl, 'SPRZEDAZ', True, (num_of_cities, -1)))
-
-		print('Road usage:')
-		road_usage = self.get_np_array_from_variable(ampl, 'UZYCIE_DROGI', True, (num_of_cities, num_of_cities))
-		print(road_usage)
-
-		print('Shortage (per city):')
-		print(self.get_np_array_from_variable(ampl, 'NIEZADOWOLENIE', True, (num_of_cities, -1)))
-
-		# Find path
+	def findPathInRoad(self, cities, road):
 		path = []
 		current_city = 0
 		while True:
 			if current_city == 0 and len(path) > 0:
 				break
 			path.append(current_city)
-			row = road_usage[current_city, :]
+			row = road[current_city, :]
 			for idx, elem in enumerate(row):
 				if elem > 0:
 					current_city = idx
 					break
-		
-		print("Path:")
-		print(cities[path])
 
-		# Calculate income
+		return cities[path]
+
+	def calculateIncome(self, ampl):
 		sold = np.array(ampl.getVariable('SPRZEDAZ').getValues().toPandas().as_matrix())
 		price = np.array(ampl.getParameter('CENA').getValues().toPandas().as_matrix())
-		incomde_per_city = np.multiply(sold, price)
-		income = np.sum(incomde_per_city)
+		income_per_city = np.multiply(sold, price)
 
-		print('Income (per city):')
-		print(np.transpose(incomde_per_city))
+		return np.transpose(income_per_city)
 
-		print('Income (total):')
-		print(income)
+	def calculateTotalIncome(self, income):
+		totalIncome = np.sum(income)
+		return totalIncome
+
+	def collectCarUsage(self, id, ampl, cities):
+		num_of_cities = len(cities)
+
+		cargo = self.get_np_array_from_variable(ampl, 'ZABRANE')
+		sales = self.get_np_array_from_variable(ampl, 'SPRZEDAZ', 
+			True, (num_of_cities, -1))
+		road = self.get_np_array_from_variable(ampl, 'UZYCIE_DROGI', 
+			True, (num_of_cities, num_of_cities))
+		path = self.findPathInRoad(cities, road)
+		income = self.calculateIncome(ampl)
+		totalIncome = self.calculateTotalIncome(income)
+
+		carUsage = Model.CarUsage(id, cargo, sales, road, path, income, totalIncome);
+		return carUsage
+
+	def get_np_array_from_variable(self, ampl, name, two_dim=False, shape=(-1, 1)):
+		tmp = np.transpose(ampl.getVariable(name).getValues().toPandas().as_matrix())
+		if two_dim:
+			tmp = np.reshape(tmp, shape)
+		return tmp
 
 	def load_data(self, data_dir):
 
