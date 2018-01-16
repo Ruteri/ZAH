@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/images">
+        <file alias="bread.png">images/bread.png</file>
+        <file alias="graph.png">images/graph.png</file>
+        <file alias="truck.png">images/truck.png</file>
+    </qresource>
+</RCC>
