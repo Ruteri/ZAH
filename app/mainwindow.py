@@ -59,7 +59,7 @@ class MainWindow(QMainWindow):
 		self.ui.statusLabel.setText("Running model, please wait...")
 
 		try:
-			self.model.run()
+			carsUsage = self.model.run()
 		except Exception as ex:
 			print("Model run error: {0}".format(ex))
 			self.ui.statusLabel.setText("Error occured during running the model. Please, try again.")
@@ -70,20 +70,20 @@ class MainWindow(QMainWindow):
 		self.ui.statusLabel.setText("Model calculated successfully!")
 		self.ui.statusLabel.setStyleSheet("color: green")
 
-		self.openResultsDialog(results)
+		self.openResultsDialog(carsUsage)
 
 	def openResultsDialog(self, results):
 		print("Opening results dialog")
 
 		self.resultsDialog = ResultsDialog(results)
-		self.resultsDialog.accepted.connect(self.resultsDialogAccepted)
+		self.resultsDialog.finished.connect(self.resultsDialogFinished)
 		self.resultsDialog.setModal(True)
 		self.resultsDialog.show()
 
 		print("Results dialog opened")
 
 	@pyqtSlot()
-	def resultsDialogAccepted(self):
+	def resultsDialogFinished(self):
 		self.ui.statusLabel.setText("Please load new data for model.")
 		self.ui.statusLabel.setStyleSheet("");
 		self.ui.loadDataButton.setEnabled(True)

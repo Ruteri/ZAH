@@ -10,7 +10,8 @@ def main():
 
     dataDirectory = sys.argv[1]
     model = Model(dataDirectory)
-    model.run()
+    carsUsage = model.run()
+    print(carsUsage)
 
 if __name__ == "__main__":
     main()
