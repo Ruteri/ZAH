@@ -6,6 +6,7 @@ import numpy as np
 from copy import deepcopy
 from amplpy import AMPL
 from sweep.sweep import sweep
+from clarke_wright.clarke_wright import clarke_wright
 
 class Struct(object): pass
 
@@ -195,7 +196,45 @@ def run_sweep(data, debug=False):
         for (x, y, demand, angle, car) in points:
             print("{0: >8},{1: >8},{2: >10},{3: >20},{4: >4}".format(x, y, demand, angle, int(car)))
 
-    return (points, order, cars_used)
+    result = []
+    for car_id in range(0, cars_used):
+
+        # Generate list od cities/points belonging to this cluster
+        cities = []
+        for index, (_,_,_,_,id) in enumerate(points):
+            if car_id == id:
+                cities.append(index)
+
+        # Get original IDs (before sorting)
+        cities = order[cities]
+
+        # Increase IDs by one and add bakery (it was removed earlier before
+        #running SWEEP). Then sort indices
+        cities = np.sort(np.append(0, np.add(cities, 1)))
+
+        result.append((car_id, cities))
+
+    print('Result:\n')
+    print(result)
+
+    return result
+
+def run_clarke_wright(data, debug=False):
+
+    # Calculate simplified demand
+    simplified_demand = get_simplified_demand(data.demand, data.volumes)
+
+    capacity = data.capacity
+    #if len(data.capacity) != 1:
+    #    print("Warning: Clarke Wright algorithm assumes equal capacities of all cars")
+    #    capacity = data.capacity[0]
+
+    result = clarke_wright(data.roads, simplified_demand, capacity)
+
+    print('Result:\n')
+    print(result)
+
+    return result
 
 def get_data_subset(data, car_id, city_ids):
 
@@ -222,26 +261,13 @@ def main():
     data = load_data(sys.argv[1])
 
     # Run SWEEP algorithm
-    (points, order, cars_used) = run_sweep(data, True)
+    #result = run_sweep(data, True)
+
+    # Run Clarke-Wright algorithm
+    result = run_clarke_wright(data, True)
 
     # Run AMPL model for each car separately
-    for car_id in range(0, cars_used):
-
-        print('\nCAR {0}:'.format(car_id))
-
-        # Generate list od cities/points belonging to this cluster
-        cities = []
-        for index, (_,_,_,_,id) in enumerate(points):
-            if car_id == id:
-                cities.append(index)
-
-        # Get original IDs (before sorting)
-        cities = order[cities]
-
-        # Increase IDs by one and add bakery (it was removed earlier before
-        #running SWEEP). Then sort indices
-        cities = np.sort(np.append(0, np.add(cities, 1)))
-
+    for (car_id, cities) in result:
         # Get subset of the data and run AMPL model
         data_subset = get_data_subset(data, car_id, cities)
         ampl = run_ampl_model(data_subset, False)
