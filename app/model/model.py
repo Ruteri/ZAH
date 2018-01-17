@@ -4,6 +4,7 @@ import numpy as np
 from copy import deepcopy
 from amplpy import AMPL
 from sweep.sweep import sweep
+from clarke_wright.clarke_wright import clarke_wright
 from collections import namedtuple
 
 class Model(object):
@@ -14,26 +15,15 @@ class Model(object):
 		self.verbose = verbose
 
 	def run(self):
-		(points, order, cars_used) = self.run_sweep(self.data)
+		#result = self.run_clarke_wright(self.data)
+		result = self.run_sweep(self.data)
 
 		# Run AMPL model for each car separately
 		carsUsage = []
-		for car_id in range(0, cars_used):
+		for (car_id, cities) in result:
+
 			if self.verbose:
 				print('\nCAR {0}:'.format(car_id))
-
-			# Generate list od cities/points belonging to this cluster
-			cities = []
-			for index, (_,_,_,_,id) in enumerate(points):
-				if car_id == id:
-					cities.append(index)
-
-			# Get original IDs (before sorting)
-			cities = order[cities]
-
-			# Increase IDs by one and add bakery (it was removed earlier before
-			#running SWEEP). Then sort indices
-			cities = np.sort(np.append(0, np.add(cities, 1)))
 
 			# Get subset of the data and run AMPL model
 			data_subset = self.get_data_subset(self.data, car_id, cities)
@@ -209,23 +199,51 @@ class Model(object):
 
 	def run_sweep(self, data):
 
-		# Calculate simplified demand
-		simplified_demand = self.get_simplified_demand(data.demand, data.volumes)
+	    # Calculate simplified demand
+	    simplified_demand = self.get_simplified_demand(data.demand, data.volumes)
 
-		# Get bakery coefficients
-		depot_coordinates = (data.coordinates[0,0], data.coordinates[0,1])
+	    # Get bakery coefficients
+	    depot_coordinates = (data.coordinates[0,0], data.coordinates[0,1])
 
-		points = np.append(data.coordinates[1:, :], simplified_demand[1:], axis=1)
-		(points, order, cars_used) = sweep(points, data.capacity, depot_coordinates)
+	    points = np.append(data.coordinates[1:, :], simplified_demand[1:], axis=1)
+	    (points, order, cars_used) = sweep(points, data.capacity, depot_coordinates)
 
-		if self.verbose:
-			# Print results
-			print("       X        Y     DEMAND                ANGLE  CAR")
-			print("======================================================")
-			for (x, y, demand, angle, car) in points:
-				print("{0: >8},{1: >8},{2: >10},{3: >20},{4: >4}".format(x, y, demand, angle, int(car)))
+	    result = []
+	    for car_id in range(0, cars_used):
 
-		return (points, order, cars_used)
+	        # Generate list od cities/points belonging to this cluster
+	        cities = []
+	        for index, (_,_,_,_,id) in enumerate(points):
+	            if car_id == id:
+	                cities.append(index)
+
+	        # Get original IDs (before sorting)
+	        cities = order[cities]
+
+	        # Increase IDs by one and add bakery (it was removed earlier before
+	        #running SWEEP). Then sort indices
+	        cities = np.sort(np.append(0, np.add(cities, 1)))
+
+	        result.append((car_id, cities))
+
+	    return result
+
+	def run_clarke_wright(self, data):
+
+	    # Calculate simplified demand
+	    simplified_demand = self.get_simplified_demand(data.demand, data.volumes)
+
+	    capacity = data.capacity
+	    #if len(data.capacity) != 1:
+	    #    print("Warning: Clarke Wright algorithm assumes equal capacities of all cars")
+	    #    capacity = data.capacity[0]
+
+	    result = clarke_wright(data.roads, simplified_demand, capacity)
+
+	    print('Result:\n')
+	    print(result)
+
+	    return result
 
 	def get_data_subset(self, data, car_id, city_ids):
 
