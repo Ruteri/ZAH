@@ -21,11 +21,9 @@ class MainWindow(QMainWindow):
 		self.loadDataDialog.setAcceptMode(QFileDialog.AcceptOpen)
 		self.loadDataDialog.fileSelected.connect(self.directorySelected)
 
-		self.aboutDialog = AboutDialog()
-
 		self.ui.loadDataButton.clicked.connect(self.loadDataDialog.show)
 		self.ui.calculateButton.clicked.connect(self.calculateClicked)
-		self.ui.actionAbout.triggered.connect(self.aboutDialog.show)
+		self.ui.actionAbout.triggered.connect(self.actionAboutTriggered)
 
 	@pyqtSlot(str)
 	def directorySelected(self, dataDirectory):
@@ -92,7 +90,8 @@ class MainWindow(QMainWindow):
 	def openResultsDialog(self, results):
 		print("Opening results dialog")
 
-		self.resultsDialog = ResultsDialog(self.model.breadTypes, self.model.cities, results)
+		self.resultsDialog = ResultsDialog(self.model.breadTypes, 
+			self.model.cities, self.model.coordinates, results, self)
 		self.resultsDialog.finished.connect(self.resultsDialogFinished)
 		self.resultsDialog.setModal(True)
 		self.resultsDialog.show()
@@ -105,3 +104,7 @@ class MainWindow(QMainWindow):
 		self.ui.useSweepRadioButton.setEnabled(True)
 		self.ui.useClarkeWrightRadioButton.setEnabled(True)
 
+	@pyqtSlot()
+	def actionAboutTriggered(self):
+		self.aboutDialog = AboutDialog(self)
+		self.aboutDialog.show()

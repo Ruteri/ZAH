@@ -1,14 +1,15 @@
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QDialog, QTableWidgetItem
 from ui.ui_resultsdialog import Ui_ResultsDialog
+from citiesmapdialog import CitiesMapDialog
 import rc.images_rc
 from collections import namedtuple
 
 CarUsageDetails = namedtuple('CarUsageDetails', ['salesPerCity', 'incomePerCity'])
 
 class ResultsDialog(QDialog):
-	def __init__(self, breadTypes, cities, carsUsage):
-		super(ResultsDialog, self).__init__()
+	def __init__(self, breadTypes, cities, coordinates, carsUsage, parent):
+		super(ResultsDialog, self).__init__(parent)
 
 		# Set up the user interface from Designer.
 		self.ui = Ui_ResultsDialog()
@@ -18,9 +19,12 @@ class ResultsDialog(QDialog):
 		print("Cities: {0}".format(cities))
 		self.breadTypes = breadTypes
 		self.cities = cities
+		self.coordinates = coordinates
+		self.paths = [carUsage.path for carUsage in carsUsage]
 
 		self.ui.carIdComboBox.activated.connect(self.carIdActivated)
 		self.ui.cityIdComboBox.activated.connect(self.cityIdActivated)
+		self.ui.showPathPushButton.clicked.connect(self.showPathClicked)
 
 		self.setupCargoTableWidget()
 		self.setupDetailsTableWidget()
@@ -66,13 +70,15 @@ class ResultsDialog(QDialog):
 
 	def loadCarUsageDetails(self, carUsage):
 		self.ui.cityIdComboBox.clear();
+		cityId = 0
 		[citiesCount, _] = carUsage.sales.shape;
 		for cityIndex in range(citiesCount):
 			salesPerCity = carUsage.sales[cityIndex,]
 			incomePerCity = carUsage.income[cityIndex,]
 			carUsageDetails = CarUsageDetails(salesPerCity, incomePerCity)
-			cityId = self.cities[cityIndex]
-			self.ui.cityIdComboBox.addItem(cityId, carUsageDetails)
+			# cityId = self.cities[cityIndex]
+			self.ui.cityIdComboBox.addItem(str(cityId), carUsageDetails)
+			cityId += 1
 
 		self.cityIdActivated(0)
 
@@ -92,3 +98,8 @@ class ResultsDialog(QDialog):
 			incomeItem = QTableWidgetItem(incomeItemText)
 			self.ui.detailsTableWidget.setItem(1, x, incomeItem)
 
+	@pyqtSlot()
+	def showPathClicked(self):
+		self.citiesMapDialog = CitiesMapDialog(self.coordinates, self.paths, self)
+		self.citiesMapDialog.setModal(True)
+		self.citiesMapDialog.show()
