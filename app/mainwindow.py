@@ -30,7 +30,6 @@ class MainWindow(QMainWindow):
 
 	def loadData(self, dataDirectory):
 		print("Loading model with data from: {0}".format(dataDirectory))
-
 		self.ui.loadDataButton.setEnabled(False)
 		self.ui.statusLabel.setText("Loading model, please wait...")
 
@@ -75,7 +74,7 @@ class MainWindow(QMainWindow):
 	def openResultsDialog(self, results):
 		print("Opening results dialog")
 
-		self.resultsDialog = ResultsDialog(results)
+		self.resultsDialog = ResultsDialog(self.model.breadTypes, self.model.cities, results)
 		self.resultsDialog.finished.connect(self.resultsDialogFinished)
 		self.resultsDialog.setModal(True)
 		self.resultsDialog.show()

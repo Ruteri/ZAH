@@ -12,6 +12,8 @@ class Model(object):
 
 	def __init__(self, dataDirectory, verbose=False):
 		self.data = self.load_data(dataDirectory)
+		self.cities = self.data.cities
+		self.breadTypes = self.data.types
 		self.verbose = verbose
 
 	def run(self):
@@ -152,7 +154,7 @@ class Model(object):
 		road = self.get_np_array_from_variable(ampl, 'UZYCIE_DROGI', 
 			True, (num_of_cities, num_of_cities))
 		path = self.findPathInRoad(cities, road)
-		income = self.calculateIncome(ampl)
+		income = self.calculateIncome(ampl).reshape(num_of_cities, -1)
 		totalIncome = self.calculateTotalIncome(income)
 
 		carUsage = Model.CarUsage(id, cargo, sales, road, path, income, totalIncome);

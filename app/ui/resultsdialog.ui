@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>786</width>
-    <height>671</height>
+    <width>625</width>
+    <height>629</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -122,20 +122,26 @@
        <widget class="QLabel" name="carImageLabel">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
+          <horstretch>3</horstretch>
+          <verstretch>3</verstretch>
          </sizepolicy>
         </property>
         <property name="minimumSize">
          <size>
-          <width>160</width>
-          <height>120</height>
+          <width>100</width>
+          <height>100</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>320</width>
-          <height>240</height>
+          <width>600</width>
+          <height>600</height>
+         </size>
+        </property>
+        <property name="sizeIncrement">
+         <size>
+          <width>0</width>
+          <height>0</height>
          </size>
         </property>
         <property name="styleSheet">
@@ -143,6 +149,9 @@
         </property>
         <property name="text">
          <string/>
+        </property>
+        <property name="scaledContents">
+         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -287,7 +296,7 @@
         </property>
        </spacer>
       </item>
-      <item row="3" column="1" colspan="4">
+      <item row="3" column="0" colspan="5">
        <widget class="QTableWidget" name="cargoTableWidget">
         <property name="sizePolicy">
          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
@@ -323,7 +332,6 @@
      <zorder>horizontalSpacer_8</zorder>
      <zorder>carImageLabel</zorder>
      <zorder>cargoTableWidget</zorder>
-     <zorder>cargoTableWidget</zorder>
     </widget>
    </item>
    <item>
@@ -333,7 +341,7 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0">
+       <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,0,1">
         <item>
          <spacer name="horizontalSpacer_10">
           <property name="orientation">
@@ -348,9 +356,9 @@
          </spacer>
         </item>
         <item>
-         <widget class="QLabel" name="cityCaptionLabel">
+         <widget class="QLabel" name="cityIdCaptionLabel">
           <property name="text">
-           <string>Select city:</string>
+           <string>Select city identifier:</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -358,7 +366,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QComboBox" name="cityComboBox">
+         <widget class="QComboBox" name="cityIdComboBox">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
             <horstretch>0</horstretch>
