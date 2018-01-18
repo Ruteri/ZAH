@@ -46,28 +46,42 @@ class MainWindow(QMainWindow):
 			self.ui.loadDataButton.setEnabled(True)
 			return
 
+		self.triggerModelLoaded()
+
+		print("Model loaded successfully")
+
+	def triggerModelLoaded(self):
 		self.ui.statusLabel.setStyleSheet("color: orange")
 		self.ui.statusLabel.setText("Model loaded sucessfully. Now you can start calculations.")
 		self.ui.loadDataButton.setEnabled(True)
 		self.ui.calculateButton.setEnabled(True)
 
-		print("Model loaded successfully")
-
 	@pyqtSlot()
 	def calculateClicked(self):
 		print("Running model")
 
+		if self.ui.useSweepRadioButton.isChecked():
+			algorithmType = Model.AlgorithmType.Sweep
+		elif self.ui.useClarkeWrightRadioButton.isChecked():
+			algorithmType = Model.AlgorithmType.ClarkeWright
+		else:
+			assert False, "Either Sweep or ClarkeWright should be checked"
+
 		self.ui.loadDataButton.setEnabled(False)
 		self.ui.calculateButton.setEnabled(False)
+		self.ui.useSweepRadioButton.setEnabled(False)
+		self.ui.useClarkeWrightRadioButton.setEnabled(False)
 		self.ui.statusLabel.setText("Running model, please wait...")
 
 		try:
-			carsUsage = self.model.run()
+			carsUsage = self.model.run(algorithmType)
 		except Exception as ex:
 			print("Model run error: {0}".format(ex))
 			self.ui.statusLabel.setText("Error occured during running the model. Please, try again.")
 			self.ui.statusLabel.setStyleSheet("color: red")
 			self.ui.loadDataButton.setEnabled(True)
+			self.ui.useSweepRadioButton.setEnabled(True)
+			self.ui.useClarkeWrightRadioButton.setEnabled(True)
 			return
 
 		self.ui.statusLabel.setText("Model calculated successfully!")
@@ -87,7 +101,7 @@ class MainWindow(QMainWindow):
 
 	@pyqtSlot()
 	def resultsDialogFinished(self):
-		self.ui.statusLabel.setText("Please load new data for model.")
-		self.ui.statusLabel.setStyleSheet("");
-		self.ui.loadDataButton.setEnabled(True)
+		self.triggerModelLoaded()
+		self.ui.useSweepRadioButton.setEnabled(True)
+		self.ui.useClarkeWrightRadioButton.setEnabled(True)
 

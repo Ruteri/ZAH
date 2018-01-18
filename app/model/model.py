@@ -6,9 +6,14 @@ from amplpy import AMPL
 from sweep.sweep import sweep
 from clarke_wright.clarke_wright import clarke_wright
 from collections import namedtuple
+from enum import Enum
 
 class Model(object):
 	CarUsage = namedtuple("CarUsage", "carId cargo sales road path income totalIncome")
+
+	class AlgorithmType(Enum):
+		Sweep = 1
+		ClarkeWright = 2
 
 	def __init__(self, dataDirectory, verbose=False):
 		self.data = self.load_data(dataDirectory)
@@ -16,9 +21,13 @@ class Model(object):
 		self.breadTypes = self.data.types
 		self.verbose = verbose
 
-	def run(self):
-		#result = self.run_clarke_wright(self.data)
-		result = self.run_sweep(self.data)
+	def run(self, algorithmType):
+		if algorithmType is Model.AlgorithmType.Sweep:
+			result = self.run_sweep(self.data)
+		elif algorithmType is Model.AlgorithmType.ClarkeWright:
+			result = self.run_clarke_wright(self.data)
+		else:
+			raise ValueError("algorithmType is invalid: {0}".format(algorithmType))
 
 		# Run AMPL model for each car separately
 		carsUsage = []
