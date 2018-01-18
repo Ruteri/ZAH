@@ -2,6 +2,7 @@ from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
 from ui.ui_mainwindow import Ui_MainWindow
 from resultsdialog import ResultsDialog
+from aboutdialog import AboutDialog
 import rc.images_rc
 
 from model.model import Model
@@ -20,8 +21,11 @@ class MainWindow(QMainWindow):
 		self.loadDataDialog.setAcceptMode(QFileDialog.AcceptOpen)
 		self.loadDataDialog.fileSelected.connect(self.directorySelected)
 
+		self.aboutDialog = AboutDialog()
+
 		self.ui.loadDataButton.clicked.connect(self.loadDataDialog.show)
 		self.ui.calculateButton.clicked.connect(self.calculateClicked)
+		self.ui.actionAbout.triggered.connect(self.aboutDialog.show)
 
 	@pyqtSlot(str)
 	def directorySelected(self, dataDirectory):

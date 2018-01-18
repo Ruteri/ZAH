@@ -14,11 +14,14 @@ ui/ui_mainwindow.py: ui/mainwindow.ui
 ui/ui_resultsdialog.py: ui/resultsdialog.ui
 	pyuic5 -o ui/ui_resultsdialog.py ui/resultsdialog.ui
 
+ui/ui_aboutdialog.py: ui/aboutdialog.ui
+	pyuic5 -o ui/ui_aboutdialog.py ui/aboutdialog.ui
+
 rc/images_rc.py: rc/images.qrc
 	pyrcc5 -o rc/images_rc.py rc/images.qrc
 
-all: ui/ui_mainwindow.py ui/ui_resultsdialog.py rc/images_rc.py
+all: ui/ui_mainwindow.py ui/ui_resultsdialog.py ui/ui_aboutdialog.py rc/images_rc.py
 
 .PHONY: clean
 clean:
-	rm -rf ui/ui_mainwindow.py ui/ui_resultsdialog.py rc/images_rc.py
+	rm -rf ui/ui_mainwindow.py ui/ui_resultsdialog.py ui/ui_aboutdialog.py rc/images_rc.py
