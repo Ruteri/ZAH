@@ -19,6 +19,7 @@ class Model(object):
 		self.data = self.load_data(dataDirectory)
 		self.cities = self.data.cities
 		self.breadTypes = self.data.types
+		self.coordinates = self.data.coordinates
 		self.verbose = verbose
 
 	def run(self, algorithmType):
