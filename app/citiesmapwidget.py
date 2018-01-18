@@ -6,10 +6,11 @@ from PyQt5.QtGui import QPainter, QColor, QFont, QPen, QTransform, QPainterPath
 from PyQt5.QtCore import Qt, QPoint
 
 class CitiesMapWidget(QWidget):
-    def __init__(self, citiesMap, carsPaths):
-        super(CitiesMapWidget, self).__init__()
+    def __init__(self, citiesMap, carsPaths, parent):
+        super(CitiesMapWidget, self).__init__(parent)
         self.citiesMap = citiesMap
         self.carsPaths = carsPaths
+        self.currentPath = []
 
         # shift everything by (10, 10)
         beginPoint = [20, 20]
@@ -17,7 +18,6 @@ class CitiesMapWidget(QWidget):
         self.initPoints(citiesMap)
         self.initTransform(citiesMap, beginPoint)
         self.initPens()
-        self.initUI()
 
     def initPoints(self, citiesMap):
         [backeryX, backeryY] = citiesMap[0]
@@ -48,7 +48,7 @@ class CitiesMapWidget(QWidget):
         if minY < beginY:
             offsetY += (beginY - minY)
 
-        [scaleX, scaleY] = [2, 2]
+        [scaleX, scaleY] = [1, 1]
 
         self.transform = QTransform()
         self.transform.scale(scaleX, scaleY)
@@ -57,28 +57,42 @@ class CitiesMapWidget(QWidget):
     def initPens(self):
         cap = Qt.RoundCap
         style = Qt.SolidLine
+        otherPathsStyle = Qt.DashLine
         pointsWidth = 5
         pathsWidth = 1
+        currentPathWidth = 2
         citiesColor = QColor(255, 0, 0)
         backeryColor = QColor(0, 255, 0)
-        pathsColor = QColor(0, 0, 0)
+        otherPathsColor = QColor(196, 196, 196)
+        currentPathColor = QColor(0, 0, 0)
         self.backeryPen = QPen(backeryColor, pointsWidth, style, cap)
         self.citiesPen = QPen(citiesColor, pointsWidth, style, cap)
-        self.pathsPen = QPen(pathsColor, pathsWidth, style, cap)
-
-    def initUI(self):      
-        self.setGeometry(300, 300, 280, 170)
-        self.show()
+        self.otherPathsPen = QPen(otherPathsColor, pathsWidth, otherPathsStyle, cap)
+        self.currentPathPen = QPen(currentPathColor, currentPathWidth, style, cap)
         
     def paintEvent(self, event):
         with QPainter(self) as painter:
             painter.setWorldTransform(self.transform)
-            self.drawCitiesMap(event, painter)
+            self.drawCitiesMap(painter)
+            self.drawCurrentPath(painter)
 
-    def drawCitiesMap(self, event, painter):
+    def drawCitiesMap(self, painter):
         self.drawCities(painter)
         self.drawBackery(painter)
         self.drawCarsPaths(painter)
+
+    def drawCurrentPath(self, painter):
+        if len(self.currentPath) == 0:
+            return
+
+        painter.setPen(self.currentPathPen)
+        path = QPainterPath()
+        path.moveTo(0, 0)
+        for cityIndex in self.currentPath[1:]:
+            cityPoint = self.citiesPoint[cityIndex-1]
+            path.lineTo(cityPoint.x(), cityPoint.y())
+
+        painter.drawPath(path)
 
     def drawBackery(self, painter):
         painter.setPen(self.backeryPen)
@@ -93,7 +107,7 @@ class CitiesMapWidget(QWidget):
             painter.drawPoint(cityPoint)
 
     def drawCarsPaths(self, painter):
-        painter.setPen(self.pathsPen)
+        painter.setPen(self.otherPathsPen)
         for carPath in self.carsPaths:
             if len(carPath) == 1: # don't draw empty path
                 continue
@@ -106,8 +120,12 @@ class CitiesMapWidget(QWidget):
 
             painter.drawPath(path)
 
+    def setCurrentPath(self, path):
+        self.currentPath = path;
+        self.repaint()
+
 if __name__ == '__main__':
-    citiesMap = [[0,0], [10,10], [10,-10], [-10,-10], [-10, 10]]
+    citiesMap = [[0,0], [100,100], [100,-100], [-100,-100], [-100, 100]]
     paths = [[0, 3, 1], [0, 2, 4]]
     app = QApplication(sys.argv)
     ex = CitiesMapWidget(citiesMap, paths)
