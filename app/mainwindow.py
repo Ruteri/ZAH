@@ -72,7 +72,7 @@ class MainWindow(QMainWindow):
 		self.ui.statusLabel.setText("Running model, please wait...")
 
 		try:
-			carsUsage = self.model.run(algorithmType)
+			carsUsage, _ = self.model.run(algorithmType)
 		except Exception as ex:
 			print("Model run error: {0}".format(ex))
 			self.ui.statusLabel.setText("Error occured during running the model. Please, try again.")

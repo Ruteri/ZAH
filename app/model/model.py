@@ -47,7 +47,10 @@ class Model(object):
 			if self.verbose:
 				print(carUsage)
 
-		return carsUsage
+		simplified_demand = self.get_simplified_demand(self.data.demand, self.data.volumes)
+		points = np.append(self.data.coordinates, simplified_demand, axis=1)
+
+		return carsUsage, points
 
 	class Struct(object): pass
 
