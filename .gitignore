@@ -1,1 +1,6 @@
 *.pyc
+ui_*.py
+*_rc.py
+*.aux
+*.log
+*.pdf
