@@ -64,8 +64,11 @@ def read_paths(paths_file):
 		lines = content.split("\n")
 		paths = []
 		for line in lines:
-			cities = [int(x) for x in line.split(',')]
-			paths.append(cities)
+			try:
+				cities = [int(x) for x in line.split(',')]
+				paths.append(cities)
+			except ValueError:
+				print('Parsing error. Skipping line.')
 
 		return paths
 
