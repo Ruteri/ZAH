@@ -6,9 +6,6 @@ import numpy as np
 
 def print_texmap_data(output_dir, carsUsage, points):
 
-	# Remove bakery/depot from the list of points
-	points = points[1:]
-
 	f = open('{0}/points'.format(output_dir), 'w')
 	for point in points:
 		f.write(", ".join(str(x) for x in point) + "\n")

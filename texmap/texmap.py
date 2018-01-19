@@ -73,15 +73,19 @@ def read_paths(paths_file):
 		return paths
 
 def main():
-    if len(sys.argv) < 6:
-        print("Usage: {0} <points_file> <paths_file> <depot_x> <depot_y> <output_texfile>"
+    if len(sys.argv) < 4:
+        print("Usage: {0} <points_file> <paths_file> <output_texfile>"
         	.format(sys.argv[0]))
         return 1
 
     points = np.genfromtxt(sys.argv[1], delimiter=",")
     paths = read_paths(sys.argv[2])
-    (depot_x, depot_y) = (float(sys.argv[3]), float(sys.argv[4]))
-    output_texfile = sys.argv[5]
+    output_texfile = sys.argv[3]
+
+    depot = points[0]
+    depot_x = depot[0]
+    depot_y = depot[1]
+    points = points[1:]
 
     with open(output_texfile, "w") as output:
     	tex = texmap(points, paths, depot_x, depot_y)
