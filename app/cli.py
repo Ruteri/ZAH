@@ -3,6 +3,10 @@
 import sys
 from model.model import Model
 import numpy as np
+from datetime import datetime
+
+def print_green(x):
+	print('\033[92m\033[1m' + x + '\033[0m')
 
 def print_texmap_data(output_dir, carsUsage, points):
 
@@ -32,8 +36,15 @@ def main():
 		print("Unknown AlgorithmType: {0}".format(algorithmTypeStr))
 		return 1
 
+	start = datetime.now()
+
 	carsUsage, points = model.run(algorithmType)
+
+	end = datetime.now()
+
 	print(carsUsage)
+
+	print_green('Elapsed time (hh:mm:ss.ms): {0}'.format(end - start))
 
 	if len(sys.argv) > 3:
 		output_dir = sys.argv[3]
