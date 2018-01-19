@@ -9,7 +9,7 @@ from collections import namedtuple
 from enum import Enum
 
 class Model(object):
-	CarUsage = namedtuple("CarUsage", "carId cargo sales road path income totalIncome")
+	Result = namedtuple("Result", "carId cargo sales road path income totalIncome capacityUsed")
 
 	class AlgorithmType(Enum):
 		Sweep = 1
@@ -17,9 +17,7 @@ class Model(object):
 
 	def __init__(self, dataDirectory, verbose=False):
 		self.data = self.load_data(dataDirectory)
-		self.cities = self.data.cities
-		self.breadTypes = self.data.types
-		self.coordinates = self.data.coordinates
+		print("Loaded data: {0}".format(self.data))
 		self.verbose = verbose
 
 	def run(self, algorithmType):
@@ -31,7 +29,7 @@ class Model(object):
 			raise ValueError("algorithmType is invalid: {0}".format(algorithmType))
 
 		# Run AMPL model for each car separately
-		carsUsage = []
+		results = []
 		for (car_id, cities) in result:
 
 			if self.verbose:
@@ -41,15 +39,14 @@ class Model(object):
 			data_subset = self.get_data_subset(self.data, car_id, cities)
 			ampl = self.run_ampl_model(data_subset)
 
-			carUsage = self.collectCarUsage(car_id, ampl, cities)
-			carsUsage.append(carUsage)
+			result = self.collectResult(car_id, ampl, cities)
+			results.append(result)
 
 			if self.verbose:
-				print(carUsage)
+				print(result)
 
-		return carsUsage
+		return results
 
-	class Struct(object): pass
 
 	def print_scalar_param(self, file, param, name):
 		file.write(b'param {0} := {1};'.format(name, param))
@@ -94,7 +91,7 @@ class Model(object):
 		self.print_1d_param(tmp_file, data.supply, 'PODAZ')
 		self.print_1d_param(tmp_file, data.volumes, 'OBJETOSC')
 		self.print_1d_param(tmp_file, data.cities, ': punkty: miasta')
-		self.print_1d_param(tmp_file, data.types, ': pieczywa: typy')
+		self.print_1d_param(tmp_file, data.breadTypes, ': pieczywa: typy')
 		self.print_scalar_param(tmp_file, 1, 'KOSZT_KIEROWCY')
 		self.print_scalar_param(tmp_file, data.capacity, 'POJEMNOSC')
 
@@ -155,7 +152,14 @@ class Model(object):
 		totalIncome = np.sum(income)
 		return totalIncome
 
-	def collectCarUsage(self, id, ampl, cities):
+	def calculateCapacityUsed(self, capacity, sales):
+		salesTotal = 0
+		for inCitySales in sales:
+			salesTotal += np.sum(inCitySales)
+		capacityUsed = (salesTotal / capacity) * 100
+		return capacityUsed
+
+	def collectResult(self, id, ampl, cities):
 		num_of_cities = len(cities)
 
 		cargo = self.get_np_array_from_variable(ampl, 'ZABRANE')
@@ -166,15 +170,17 @@ class Model(object):
 		path = self.findPathInRoad(cities, road)
 		income = self.calculateIncome(ampl).reshape(num_of_cities, -1)
 		totalIncome = self.calculateTotalIncome(income)
-
-		carUsage = Model.CarUsage(id, cargo, sales, road, path, income, totalIncome);
-		return carUsage
+		capacityUsed = self.calculateCapacityUsed(self.data.capacity[id], sales)
+		result = Model.Result(id, cargo, sales, road, path, income, totalIncome, capacityUsed);
+		return result
 
 	def get_np_array_from_variable(self, ampl, name, two_dim=False, shape=(-1, 1)):
 		tmp = np.transpose(ampl.getVariable(name).getValues().toPandas().as_matrix())
 		if two_dim:
 			tmp = np.reshape(tmp, shape)
 		return tmp
+
+	class Struct(object): pass
 
 	def load_data(self, data_dir):
 
@@ -188,11 +194,11 @@ class Model(object):
 		data.capacity = np.genfromtxt('{0}/capacity'.format(data_dir), delimiter=",")
 		data.volumes = np.genfromtxt('{0}/volumes'.format(data_dir), delimiter=",")
 		data.coordinates = np.genfromtxt('{0}/coordinates'.format(data_dir), delimiter=",")
-
 		# Load textual data
 		data.cities = np.array([line.rstrip('\n') for line in open('{0}/cities'.format(data_dir))])
-		data.types = np.array([line.rstrip('\n') for line in open('{0}/types'.format(data_dir))])
-
+		data.breadTypes = np.array([line.rstrip('\n') for line in open('{0}/types'.format(data_dir))])
+		data.citiesTotal = len(data.cities)
+		data.carsTotal = len(data.capacity)
 		return data
 
 	# Calculates simplified demand as total volume of products needed to fulfill
