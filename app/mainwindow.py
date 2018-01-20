@@ -80,18 +80,17 @@ class MainWindow(QMainWindow):
 			self.ui.loadDataButton.setEnabled(True)
 			self.ui.useSweepRadioButton.setEnabled(True)
 			self.ui.useClarkeWrightRadioButton.setEnabled(True)
-			return
+			raise
 
 		self.ui.statusLabel.setText("Model calculated successfully!")
 		self.ui.statusLabel.setStyleSheet("color: green")
 
 		self.openResultsDialog(carsUsage)
 
-	def openResultsDialog(self, results):
+	def openResultsDialog(self, modelResults):
 		print("Opening results dialog")
 
-		self.resultsDialog = ResultsDialog(self.model.breadTypes, 
-			self.model.cities, self.model.coordinates, results, self)
+		self.resultsDialog = ResultsDialog(self.model.data, modelResults, self)
 		self.resultsDialog.finished.connect(self.resultsDialogFinished)
 		self.resultsDialog.setModal(True)
 		self.resultsDialog.show()
