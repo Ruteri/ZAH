@@ -87,7 +87,8 @@ class CitiesMapWidget(QWidget):
 
         painter.setPen(self.currentPathPen)
         path = QPainterPath()
-        path.moveTo(0, 0)
+        [backeryX, backeryY] = self.citiesMap[0]
+        path.moveTo(backeryX, backeryY)
         for cityIndex in self.currentPath[1:]:
             cityPoint = self.citiesPoint[cityIndex-1]
             path.lineTo(cityPoint.x(), cityPoint.y())
@@ -113,7 +114,8 @@ class CitiesMapWidget(QWidget):
                 continue
 
             path = QPainterPath()
-            path.moveTo(0, 0)
+            [backeryX, backeryY] = self.citiesMap[0]
+            path.moveTo(backeryX, backeryY)
             for cityIndex in carPath[1:]:
                 cityPoint = self.citiesPoint[cityIndex-1]
                 path.lineTo(cityPoint.x(), cityPoint.y())
