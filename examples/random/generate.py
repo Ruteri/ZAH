@@ -15,22 +15,24 @@ def gen_float_data_file(name, dim, max):
 
 def main():
     
-    if len(sys.argv) < 2:
-        print('Usage: {0} num_of_cities'.format(sys.argv[0]))
+    if len(sys.argv) < 3:
+        print('Usage: {0} num_of_cities output_dir'.format(sys.argv[0]))
         return 1
 
     num_of_cities = int(sys.argv[1])
     num_of_cars = num_of_cities
 
-    gen_int_data_file('capacity', [num_of_cars, 1], [10000, 14000])
-    gen_int_data_file('demand', [num_of_cities, 3], [100, 300])
-    gen_int_data_file('prices', [num_of_cities, 3], [1, 10])
-    #gen_int_data_file('roads', [num_of_cities, num_of_cities], [1, 2000])
-    gen_float_data_file('shortage_coeff', [num_of_cities, 3], 5)
-    gen_int_data_file('supply', [3, 1], [301*num_of_cities, 400*num_of_cities])
-    gen_int_data_file('volumes', [3, 1], [1, 5])
+    output_dir = sys.argv[2]
 
-    coordinates = gen_int_data_file('coordinates', [num_of_cities, 2], [-1000, 1000])
+    gen_int_data_file(output_dir + '/capacity', [num_of_cars, 1], [10000, 14000])
+    gen_int_data_file(output_dir + '/demand', [num_of_cities, 3], [100, 300])
+    gen_int_data_file(output_dir + '/prices', [num_of_cities, 3], [1, 10])
+    #gen_int_data_file('roads', [num_of_cities, num_of_cities], [1, 2000])
+    gen_float_data_file(output_dir + '/shortage_coeff', [num_of_cities, 3], 5)
+    gen_int_data_file(output_dir + '/supply', [3, 1], [301*num_of_cities, 400*num_of_cities])
+    gen_int_data_file(output_dir + '/volumes', [3, 1], [1, 5])
+
+    coordinates = gen_int_data_file(output_dir + '/coordinates', [num_of_cities, 2], [0, 500])
 
     roads = np.zeros([num_of_cities, num_of_cities])
     for i in range(0, num_of_cities):
@@ -43,9 +45,9 @@ def main():
             dx = xi - xj
             dy = yi - yj
             roads[i,j] = roads[j,i] = math.sqrt(dx*dx + dy*dy)
-    np.savetxt('roads', roads, delimiter=',')
+    np.savetxt(output_dir + '/roads', roads, delimiter=',')
 
-    f = open('cities', 'w')
+    f = open(output_dir + '/cities', 'w')
     for i in range(0, num_of_cities):
         f.write("m\n")
     f.close()
