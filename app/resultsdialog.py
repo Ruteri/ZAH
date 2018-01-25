@@ -82,7 +82,7 @@ class ResultsDialog(QDialog):
 		print("carIdActivated index={0}".index)
 
 		modelResult = self.ui.carIdComboBox.itemData(index)
-		self.ui.capacityUsedLabel.setText(str(modelResult.capacityUsed) + "%")
+		self.ui.capacityUsedLabel.setText("%.2f" % modelResult.capacityUsed + "%")
 		self.ui.totalIncomeLabel.setText(str(modelResult.totalIncome))
 
 		self.updateCargoPerBreadType(modelResult.cargo)
