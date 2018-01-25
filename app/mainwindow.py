@@ -1,6 +1,7 @@
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtWidgets import QMainWindow, QFileDialog
 from ui.ui_mainwindow import Ui_MainWindow
+from inputdatadialog import InputDataDialog
 from resultsdialog import ResultsDialog
 from aboutdialog import AboutDialog
 import rc.images_rc
@@ -90,10 +91,13 @@ class MainWindow(QMainWindow):
 	def openResultsDialog(self, modelResults):
 		print("Opening results dialog")
 
-		self.resultsDialog = ResultsDialog(self.model.data, modelResults, self)
-		self.resultsDialog.finished.connect(self.resultsDialogFinished)
-		self.resultsDialog.setModal(True)
-		self.resultsDialog.show()
+		self.ui.inputDataDialog = InputDataDialog(self.model.data, self)
+
+		self.ui.resultsDialog = ResultsDialog(self.model.data, modelResults, self)
+		self.ui.resultsDialog.finished.connect(self.resultsDialogFinished)
+
+		self.ui.inputDataDialog.show()
+		self.ui.resultsDialog.show()
 
 		print("Results dialog opened")
 
